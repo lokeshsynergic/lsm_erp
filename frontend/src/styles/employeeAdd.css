@@ -1,0 +1,260 @@
+.employee-add {
+  padding: 24px;
+}
+
+.employee-add-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #6b6b6b;
+  font-size: 13px;
+  margin-bottom: 14px;
+}
+
+.employee-add-breadcrumb .separator {
+  color: #b5b5b5;
+}
+
+.employee-add-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+
+.employee-add-heading h1 {
+  display: inline-block;
+  margin: 0 10px 0 0;
+  font-size: 22px;
+  color: #1c1c1c;
+}
+
+.not-saved-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: #fdeadf;
+  color: #c1631f;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.save-btn {
+  padding: 10px 22px;
+  border: none;
+  border-radius: 10px;
+  background: #1c1c1c;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.save-btn:hover {
+  background: #000000;
+}
+
+.employee-add-tabs {
+  display: flex;
+  gap: 22px;
+  border-bottom: 1px solid #e0e0e0;
+  margin-bottom: 24px;
+  overflow-x: auto;
+}
+
+.employee-tab {
+  border: none;
+  background: none;
+  padding: 10px 2px 14px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #6b6b6b;
+  cursor: pointer;
+  white-space: nowrap;
+  border-bottom: 2px solid transparent;
+}
+
+.employee-tab.active {
+  color: #1c1c1c;
+  border-bottom-color: #1c1c1c;
+}
+
+.employee-add-form {
+  background: #ffffff;
+  border: 1px solid #e0e0e0;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.04);
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px 28px;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-field label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #1c1c1c;
+}
+
+.required {
+  color: #d0384e;
+}
+
+.form-field input,
+.form-field select {
+  height: 40px;
+  padding: 0 12px;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+  background: #f2f2f2;
+  font-size: 14px;
+  color: #1c1c1c;
+}
+
+.form-field input:focus,
+.form-field select:focus {
+  outline: none;
+  border-color: #1c1c1c;
+  background: #ffffff;
+}
+
+.field-hint {
+  font-size: 12px;
+  color: #8a8a8a;
+}
+
+.form-section {
+  margin-top: 28px;
+  padding-top: 20px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.section-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: none;
+  background: none;
+  padding: 0 0 16px;
+  font-size: 15px;
+  font-weight: 700;
+  color: #1c1c1c;
+  cursor: pointer;
+}
+
+.chevron {
+  transition: transform 0.2s ease;
+}
+
+.chevron.open {
+  transform: rotate(180deg);
+}
+
+@media (max-width: 760px) {
+  .employee-add {
+    padding: 16px;
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+}
+.form-field.full-width {
+  grid-column: 1 / -1;
+}
+
+/* EDU/EXPE Section Styling */
+.edu-expe-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.section-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 12px;
+}
+
+.dynamic-row {
+  position: relative;
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 12px;
+}
+
+/* 3-Column Layout */
+.grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+/* Duration Combined Column */
+.duration-inputs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.duration-inputs input {
+  flex: 1;
+}
+
+.duration-separator {
+  font-size: 0.85rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+/* Action Buttons */
+.btn-add {
+  background-color: #2563eb;
+  color: #ffffff;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.btn-add:hover {
+  background-color: #1d4ed8;
+}
+
+.btn-remove {
+  position: absolute;
+  top: 8px;
+  right: 12px;
+  background: transparent;
+  border: none;
+  color: #ef4444;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-remove:hover {
+  color: #b91c1c;
+}
+
+.form-divider {
+  border: 0;
+  height: 1px;
+  background-color: #e2e8f0;
+  margin: 12px 0;
+}

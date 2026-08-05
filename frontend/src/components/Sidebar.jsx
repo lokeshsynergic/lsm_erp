@@ -1,0 +1,171 @@
+import { useState } from "react";
+import { NavLink } from "react-router-dom";
+import "./Sidebar.css";
+
+const menuItems = [
+  { label: "Home", icon: "🛠️", to: "/dashboard" },
+  { label: "Accounting", icon: "🧮", expandable: true, hidden: true },
+  { label: "Buying", icon: "🛍️", hidden: true },
+  { label: "Selling", icon: "🗂️", hidden: true },
+  { label: "Stock", icon: "📦", hidden: true },
+  { label: "Assets", icon: "🗄️", hidden: true },
+  {
+    label: "HRMS",
+    icon: "🪪",
+    expandable: true,
+    submenu: [
+      {
+        label: "Master",
+        expandable: true,
+        submenu: [
+          { label: "Department", to: "/hrms/department" },
+          { label: "Designation", to: "/hrms/designation" },
+          { label: "Category", to: "/hrms/category" },
+          { label: "Employee", to: "/hrms" },
+        ],
+      },
+    ],
+  },
+  { label: "Manufacturing", icon: "🏭", hidden: true },
+  {
+    label: "CRM",
+    icon: "🥧",
+    expandable: true,
+    submenu: [
+      { label: "Call Log", to: "/crm/call-log" },
+    ],
+  },
+  { label: "Quality", icon: "🎯", hidden: true },
+  { label: "Projects", icon: "📁", hidden: true },
+  { label: "Support", icon: "🎧", hidden: true },
+];
+
+function Sidebar() {
+  const [publicOpen, setPublicOpen] = useState(true);
+  const [openSubmenu, setOpenSubmenu] = useState("HRMS");
+  const [openNestedSubmenu, setOpenNestedSubmenu] = useState("Master");
+
+  return (
+    <aside className="sidebar">
+      <button
+        type="button"
+        className="sidebar-section-title"
+        onClick={() => setPublicOpen((open) => !open)}
+      >
+        <span className={`caret ${publicOpen ? "open" : ""}`}>⌄</span>
+        PUBLIC
+      </button>
+
+      {publicOpen && (
+        <ul>
+          {menuItems
+            .filter((item) => !item.hidden)
+            .map((item) => {
+            if (item.submenu) {
+              const isOpen = openSubmenu === item.label;
+              return (
+                <li key={item.label} className="has-submenu">
+                  <button
+                    type="button"
+                    className="sidebar-link"
+                    onClick={() =>
+                      setOpenSubmenu(isOpen ? null : item.label)
+                    }
+                  >
+                    <span className="menu-icon">{item.icon}</span>
+                    <span>{item.label}</span>
+                    <span className={`expand-caret ${isOpen ? "open" : ""}`}>
+                      ⌄
+                    </span>
+                  </button>
+
+                  {isOpen && (
+                    <ul className="submenu">
+                      {item.submenu.map((sub) => {
+                        // Handle nested submenus (e.g., Master > Department, Designation, etc.)
+                        if (sub.submenu) {
+                          const isNestedOpen = openNestedSubmenu === sub.label;
+                          return (
+                            <li key={sub.label} className="has-submenu">
+                              <button
+                                type="button"
+                                className="sidebar-sublink"
+                                onClick={() =>
+                                  setOpenNestedSubmenu(
+                                    isNestedOpen ? null : sub.label
+                                  )
+                                }
+                              >
+                                <span>{sub.label}</span>
+                                <span
+                                  className={`expand-caret ${
+                                    isNestedOpen ? "open" : ""
+                                  }`}
+                                >
+                                  ⌄
+                                </span>
+                              </button>
+                              {isNestedOpen && (
+                                <ul className="submenu nested-submenu">
+                                  {sub.submenu.map((nested) => (
+                                    <li key={nested.label}>
+                                      <NavLink
+                                        to={nested.to}
+                                        className="sidebar-sublink"
+                                      >
+                                        {nested.label}
+                                      </NavLink>
+                                    </li>
+                                  ))}
+                                </ul>
+                              )}
+                            </li>
+                          );
+                        }
+                        
+                        // Regular submenu item without further nesting
+                        return (
+                          <li key={sub.label}>
+                            <NavLink to={sub.to} className="sidebar-sublink">
+                              {sub.label}
+                            </NavLink>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  )}
+                </li>
+              );
+            }
+
+            return (
+              <li key={item.label}>
+                {item.to ? (
+                  <NavLink to={item.to} className="sidebar-link">
+                    <span className="menu-icon">{item.icon}</span>
+                    <span>{item.label}</span>
+                    {item.expandable && (
+                      <span className="expand-caret">⌄</span>
+                    )}
+                  </NavLink>
+                ) : (
+                  <div className="sidebar-link">
+                    <span className="menu-icon">{item.icon}</span>
+                    <span>{item.label}</span>
+                    {item.expandable && (
+                      <span className="expand-caret">⌄</span>
+                    )}
+                  </div>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </aside>
+  );
+}
+
+export default Sidebar;
+
+

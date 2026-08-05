@@ -1,0 +1,76 @@
+# ==========================================
+# Dependencies & Package Managers
+# ==========================================
+node_modules/
+backend/node_modules/
+frontend/node_modules/
+.pnpm-store/
+yarn.lock
+package-lock.json
+# Note: Keep package-lock.json or yarn.lock if your team mandates committing lockfiles.
+# To keep them, comment out the lockfile lines above with '#'.
+
+# ==========================================
+# Environment Variables & Secrets (CRITICAL)
+# ==========================================
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.env
+*.pem
+
+# ==========================================
+# Backend Output & Cache (NestJS)
+# ==========================================
+backend/dist/
+dist/
+.nestjs/
+*.tsbuildinfo
+
+# ==========================================
+# Frontend Output & Cache (React.js / CRA / Vite)
+# ==========================================
+frontend/build/
+frontend/dist/
+frontend/.cache/
+frontend/out/
+.eslintcache
+
+# ==========================================
+# Logs & Debugging
+# ==========================================
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# ==========================================
+# IDEs & Code Editors
+# ==========================================
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# ==========================================
+# OS Generated Files
+# ==========================================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
