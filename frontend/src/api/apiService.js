@@ -1,6 +1,6 @@
 import apiClient from "./apiClient";
 
-export const apiRequest = async (method, url, data = {}, params = {}) => {
+export const apiRequest = async (method, url, data = null, params = {}) => {
   try {
     const response = await apiClient({
       method,

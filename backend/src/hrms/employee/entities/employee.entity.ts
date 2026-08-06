@@ -1,103 +1,297 @@
-import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  OneToMany,
+} from 'typeorm';
+
+// 1. Use 'import type' to prevent runtime circular dependency locks
+import type { EmployeeDoc } from './employee-doc.entity';
 
 @Entity('md_hrms_employee')
 export class Employee {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryGeneratedColumn({
+    name: 'emp_id',
+    type: 'bigint',
+  })
+  empId?: number;
 
-  @Column({ type: 'varchar', length: 50, unique: true })
-  emp_code: string;
+  @Column({
+    name: 'emp_code',
+    type: 'varchar',
+    length: 20,
+    unique: true,
+  })
+  empCode?: string;
 
-  @Column({ type: 'varchar', length: 100 })
-  emp_name: string;
+  @Column({
+    name: 'first_name',
+    type: 'varchar',
+    length: 100,
+  })
+  firstName?: string;
 
-  @Column({ type: 'int', nullable: true })
-  catg_id: number;
+  @Column({
+    name: 'middle_name',
+    type: 'varchar',
+    length: 100,
+    nullable: true,
+  })
+  middleName?: string;
 
-  @Column({ type: 'date', nullable: true })
-  dob: Date;
+  @Column({
+    name: 'last_name',
+    type: 'varchar',
+    length: 100,
+    nullable: true,
+  })
+  lastName?: string;
 
-  @Column({ type: 'date', nullable: true })
-  join_dt: Date;
+  @Column({
+    name: 'gender',
+    type: 'char',
+    length: 1,
+  })
+  gender?: string;
 
-  @Column({ type: 'date', nullable: true })
-  ret_dt: Date;
+  @Column({
+    name: 'date_of_joining',
+    type: 'date',
+  })
+  dateOfJoining?: Date;
 
-  @Column({ type: 'int', nullable: true })
-  desig_id: number;
+  @Column({
+    name: 'date_of_birth',
+    type: 'date',
+  })
+  dateOfBirth?: Date;
 
-  @Column({ type: 'int', nullable: true })
-  dept_id: number;
+  @Column({
+    name: 'marital_status',
+    type: 'char',
+    length: 1,
+    nullable: true,
+  })
+  maritalStatus?: string;
 
-  @Column({ type: 'char', length: 1, nullable: true })
-  gender: string;
+  @Column({
+    name: 'blood_group',
+    type: 'varchar',
+    length: 5,
+    nullable: true,
+  })
+  bloodGroup?: string;
 
-  @Column({ type: 'varchar', length: 14, nullable: true })
-  phone_no: string;
+  @Column({
+    name: 'dept_id',
+    type: 'bigint',
+    nullable: true,
+  })
+  deptId?: number;
 
-  @Column({ type: 'varchar', length: 100, nullable: true })
-  email: string;
+  @Column({
+    name: 'desig_id',
+    type: 'bigint',
+    nullable: true,
+  })
+  desigId?: number;
 
-  @Column({ type: 'varchar', length: 50, nullable: true })
-  pan_no: string;
+  @Column({
+    name: 'cat_id',
+    type: 'bigint',
+    nullable: true,
+  })
+  catId?: number;
 
-  @Column({ type: 'varchar', length: 50, nullable: true })
-  aadhar_no: string;
+  @Column({
+    name: 'job_applicant',
+    type: 'varchar',
+    length: 100,
+    nullable: true,
+  })
+  jobApplicant?: string;
 
-  @Column({ type: 'text', nullable: true })
-  emp_addr: string;
+  @Column({
+    name: 'confirmation_date',
+    type: 'date',
+    nullable: true,
+  })
+  confirmationDate?: Date;
 
-  @Column({ type: 'int', nullable: true })
-  pin_no: number;
+  @Column({
+    name: 'notice_period',
+    type: 'int',
+    nullable: true,
+  })
+  noticePeriod?: number;
 
-  @Column({ type: 'varchar', length: 50, nullable: true })
-  bank_name: string;
+  @Column({
+    name: 'offer_date',
+    type: 'date',
+    nullable: true,
+  })
+  offerDate?: Date;
 
-  @Column({ type: 'varchar', length: 50, nullable: true })
-  bank_ac_no: string;
+  @Column({
+    name: 'contract_end_date',
+    type: 'date',
+    nullable: true,
+  })
+  contractEndDate?: Date;
 
-  @Column({ type: 'varchar', length: 20, nullable: true })
-  ifsc: string;
+  @Column({
+    name: 'date_of_retirement',
+    type: 'date',
+    nullable: true,
+  })
+  dateOfRetirement?: Date;
 
-  @Column({ type: 'varchar', length: 50, nullable: true })
-  pf_ac_no: string;
+  @Column({
+    name: 'personal_email',
+    type: 'varchar',
+    length: 150,
+    nullable: true,
+  })
+  personalEmail?: string;
 
-  @Column({ type: 'varchar', length: 25, nullable: true })
-  UAN: string;
+  @Column({
+    name: 'mobile_number',
+    type: 'varchar',
+    length: 15,
+    nullable: true,
+  })
+  mobileNumber?: string;
 
-  @Column({ type: 'numeric', precision: 10, scale: 2, default: 0.0 })
-  basic_pay: number;
+  @Column({
+    name: 'mobile_number2',
+    type: 'varchar',
+    length: 15,
+    nullable: true,
+  })
+  mobileNumber2?: string;
 
-  @Column({ type: 'numeric', precision: 12, scale: 2, default: 0.0 })
-  target: number;
+  @Column({
+    name: 'address_line1',
+    type: 'varchar',
+    length: 255,
+    nullable: true,
+  })
+  addressLine1?: string;
 
-  @Column({ type: 'numeric', precision: 12, scale: 2, default: 0.0 })
-  half_yearly: number;
+  @Column({
+    name: 'address_line2',
+    type: 'varchar',
+    length: 255,
+    nullable: true,
+  })
+  addressLine2?: string;
 
-  @Column({ type: 'numeric', precision: 12, scale: 2, default: 0.0 })
-  yearly: number;
+  @Column({
+    name: 'landmark_location',
+    type: 'varchar',
+    length: 150,
+    nullable: true,
+  })
+  landmarkLocation?: string;
 
-  @Column({ type: 'char', length: 1, default: 'A' })
-  emp_status: string;
+  @Column({
+    name: 'city',
+    type: 'varchar',
+    length: 100,
+    nullable: true,
+  })
+  city?: string;
 
-  @Column({ type: 'smallint', default: 1 })
-  salary_status: number;
+  @Column({
+    name: 'pin',
+    type: 'varchar',
+    length: 10,
+    nullable: true,
+  })
+  pin?: string;
 
-  @Column({ type: 'varchar', length: 255, nullable: true })
-  remarks: string;
+  @Column({
+    name: 'state_province',
+    type: 'varchar',
+    length: 100,
+    nullable: true,
+  })
+  stateProvince?: string;
 
-  @Column({ type: 'int', nullable: true })
-  amount: number;
+  @Column({
+    name: 'bank_name',
+    type: 'varchar',
+    length: 150,
+    nullable: true,
+  })
+  bankName?: string;
 
-  @Column({ type: 'varchar', length: 50, nullable: true })
-  created_by: string;
+  @Column({
+    name: 'bank_account_no',
+    type: 'varchar',
+    length: 50,
+    nullable: true,
+  })
+  bankAccountNo?: string;
 
-  @Column({ type: 'timestamp', nullable: true })
-  created_dt: Date;
+  @Column({
+    name: 'ifsc_code',
+    type: 'varchar',
+    length: 20,
+    nullable: true,
+  })
+  ifscCode?: string;
 
-  @Column({ type: 'varchar', length: 50, nullable: true })
-  modified_by: string;
+  @Column({
+    name: 'ctc',
+    type: 'numeric',
+    precision: 12,
+    scale: 2,
+    default: 0,
+    transformer: {
+      to: (value: number) => value,
+      from: (value: string) => parseFloat(value),
+    },
+  })
+  ctc?: number;
 
-  @Column({ type: 'timestamp', nullable: true })
-  modified_dt: Date;
+  @Column({
+    name: 'status',
+    type: 'char',
+    length: 1,
+    default: 'A',
+  })
+  status?: string;
+
+  @Column({
+    name: 'created_by',
+    type: 'varchar',
+    nullable: true,
+  })
+  createdBy?: string;
+
+  @CreateDateColumn({
+    name: 'created_at',
+  })
+  createdAt?: Date;
+
+  @Column({
+    name: 'updated_by',
+    type: 'varchar',
+    nullable: true,
+  })
+  updatedBy?: string;
+
+  @UpdateDateColumn({
+    name: 'updated_at',
+  })
+  updatedAt?: Date;
+
+  // 2. Explicitly type doc as EmployeeDoc inside the callback
+  @OneToMany('EmployeeDoc', (doc: EmployeeDoc) => doc.employee, {
+    cascade: true,
+  })
+  documents?: EmployeeDoc[];
 }

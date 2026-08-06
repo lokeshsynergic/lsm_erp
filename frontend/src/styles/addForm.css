@@ -29,6 +29,14 @@
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.04);
 }
 
+.form-container-shift {
+  background: #ffffff;
+  border: 1px solid #e0e0e0;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.04);
+}
+
 .form-group {
   margin-bottom: 20px;
   display: flex;
@@ -40,6 +48,21 @@
   color: #1c1c1c;
   font-size: 14px;
   font-weight: 700;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.form-row.two-col {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.form-row.single-col {
+  grid-template-columns: 1fr;
 }
 
 .form-group input,

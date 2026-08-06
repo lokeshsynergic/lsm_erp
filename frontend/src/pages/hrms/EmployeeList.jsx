@@ -1,9 +1,34 @@
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
 import Layout from "../../components/Layout";
-import employeeData from "../../data/employeeData";
 import "../../styles/employeeList.css";
+import { getEmployee } from "../../services/hrms/employeeService";
 
 function EmployeeList() {
+  const [employeeData, setEmployeeData] = useState([]);
+   const [loading, setLoading] = useState(false);
+   const [error, setError] = useState("");
+   const navigate = useNavigate();
+ 
+   const handleEdit = (id) => {
+        navigate(`/hrms/employee/edit/${id}`);
+    };
+ 
+      useEffect(() => {
+         loadEmployee();
+     }, []);
+ 
+  const loadEmployee = async () => {
+         try {
+             setLoading(true);
+             const data = await getEmployee({});
+             setEmployeeData(data);
+         } catch (err) {
+             setError(err.message);
+         } finally {
+             setLoading(false);
+         }
+     };
   return (
     <Layout>
       <div className="employee-list">
@@ -32,9 +57,9 @@ function EmployeeList() {
 
             <tbody>
               {employeeData.map((employee) => (
-                <tr key={employee.id}>
-                  <td>{employee.id}</td>
-                  <td>{employee.name}</td>
+                <tr key={employee.emp_code}>
+                  <td>{employee.emp_code}</td>
+                  <td>{employee.first_name} {employee.middle_name} {employee.last_name}</td>
                   <td>{employee.designation}</td>
                   <td>{employee.department}</td>
                   <td>
@@ -44,7 +69,7 @@ function EmployeeList() {
                       {employee.status}
                     </span>
                   </td>
-                  <td>{employee.dateOfJoining}</td>
+                  <td>{employee.date_of_joining}</td>
                 </tr>
               ))}
             </tbody>

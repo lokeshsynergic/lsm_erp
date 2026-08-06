@@ -53,3 +53,57 @@ export const saveCategory = (data, id) => {
 export const getCategoryById = (id) => {
   return apiRequest("GET", `/master/category/${id}`);
 };
+
+//   Function for Document
+export const getDocument = (data) => {
+  return apiRequest("GET", "/master/document", data);
+};
+export const saveDocument = (data, id) => {
+  if (id) {
+    // UPDATE existing document (PUT /master/document/4)
+    return apiRequest("PUT", `/master/document/${id}`, data);
+  } else {
+    // CREATE new document (POST /master/document)
+    return apiRequest("POST", "/master/document", data);
+  }
+};
+
+export const getDocumentById = (id) => {
+  return apiRequest("GET", `/master/document/${id}`);
+};
+
+//   Function for Document
+export const getShift = (data) => {
+  return apiRequest("GET", "/master/shift", data);
+};
+export const saveShift = (data, id) => {
+  if (id) {
+    // UPDATE existing shift (PUT /master/shift/4)
+    return apiRequest("PUT", `/master/shift/${id}`, data);
+  } else {
+    // CREATE new shift (POST /master/shift)
+    return apiRequest("POST", "/master/shift", data);
+  }
+};
+
+export const getShiftById = (id) => {
+  return apiRequest("GET", `/master/shift/${id}`);
+};
+
+//   Function for Employee
+export const getEmployee = (data) => {
+  return apiRequest("GET", "/master/emp", data);
+};
+export const saveEmployee = (data, id) => {
+  if (id) {
+    // UPDATE existing employee (PUT /master/emp/4)
+    return apiRequest("PUT", `/master/emp/${id}`, data);
+  } else {
+    // CREATE new employee (POST /master/emp)
+    return apiRequest("POST", "/master/emp", data);
+  }
+};
+
+export const getEmployeeById = (id) => {
+  return apiRequest("GET", `/master/emp/${id}`);
+};

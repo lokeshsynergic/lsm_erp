@@ -3,9 +3,6 @@ import axios from "axios";
 const apiClient = axios.create({
   baseURL: "http://localhost:3001",
   timeout: 10000,
-  headers: {
-    "Content-Type": "application/json",
-  },
 });
 
 apiClient.interceptors.request.use((config) => {
@@ -13,6 +10,14 @@ apiClient.interceptors.request.use((config) => {
 
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
+  }
+
+  // Only set Content-Type for non-FormData requests
+  if (!(config.data instanceof FormData)) {
+    config.headers["Content-Type"] = "application/json";
+  } else {
+    // Remove Content-Type for FormData to let axios set it with boundary
+    delete config.headers["Content-Type"];
   }
 
   return config;

@@ -1,117 +1,165 @@
-import { IsString, IsOptional, IsEmail, IsDateString, IsNumber } from 'class-validator';
+import { Type } from 'class-transformer';
+import {
+  IsString,
+  IsNotEmpty,
+  IsOptional,
+  IsEmail,
+  IsNumber,
+  IsDateString,
+  Length,
+  ValidateNested,
+  IsArray,
+} from 'class-validator';
+
+export class CreateEmployeeDocDto {
+  @IsNumber()
+  docId?: number;
+
+  @IsOptional()
+  @IsString()
+  documentNo?: string;
+
+  @IsOptional()
+  @IsString()
+  documentPath?: string;
+}
 
 export class CreateEmployeeDto {
+  @IsOptional()
   @IsString()
-  emp_code: string;
+  @Length(1, 20)
+  empCode?: string;
 
+  @IsNotEmpty()
   @IsString()
-  emp_name: string;
-
-  @IsOptional()
-  @IsNumber()
-  catg_id?: number;
-
-  @IsOptional()
-  @IsDateString()
-  dob?: string;
-
-  @IsOptional()
-  @IsDateString()
-  join_dt?: string;
-
-  @IsOptional()
-  @IsDateString()
-  ret_dt?: string;
-
-  @IsOptional()
-  @IsNumber()
-  desig_id?: number;
-
-  @IsOptional()
-  @IsNumber()
-  dept_id?: number;
+  firstName?: string;
 
   @IsOptional()
   @IsString()
+  middleName?: string;
+
+  @IsOptional()
+  @IsString()
+  lastName?: string;
+
+  @IsNotEmpty()
+  @IsString()
+  @Length(1, 1)
   gender?: string;
 
+  @IsNotEmpty()
+  @IsDateString()
+  dateOfJoining?: string;
+
+  @IsNotEmpty()
+  @IsDateString()
+  dateOfBirth?: string;
+
   @IsOptional()
   @IsString()
-  phone_no?: string;
+  @Length(1, 1)
+  maritalStatus?: string;
+
+  @IsOptional()
+  @IsString()
+  bloodGroup?: string;
+
+  @IsOptional()
+  @IsNumber()
+  deptId?: number;
+
+  @IsOptional()
+  @IsNumber()
+  desigId?: number;
+
+  @IsOptional()
+  @IsNumber()
+  catId?: number;
+
+  @IsOptional()
+  @IsString()
+  jobApplicant?: string;
+
+  @IsOptional()
+  @IsDateString()
+  confirmationDate?: string;
+
+  @IsOptional()
+  @IsNumber()
+  noticePeriod?: number;
+
+  @IsOptional()
+  @IsDateString()
+  offerDate?: string;
+
+  @IsOptional()
+  @IsDateString()
+  contractEndDate?: string;
+
+  @IsOptional()
+  @IsDateString()
+  dateOfRetirement?: string;
 
   @IsOptional()
   @IsEmail()
-  email?: string;
+  personalEmail?: string;
 
   @IsOptional()
   @IsString()
-  pan_no?: string;
+  mobileNumber?: string;
 
   @IsOptional()
   @IsString()
-  aadhar_no?: string;
+  mobileNumber2?: string;
 
   @IsOptional()
   @IsString()
-  emp_addr?: string;
+  addressLine1?: string;
+
+  @IsOptional()
+  @IsString()
+  addressLine2?: string;
+
+  @IsOptional()
+  @IsString()
+  landmarkLocation?: string;
+
+  @IsOptional()
+  @IsString()
+  city?: string;
+
+  @IsOptional()
+  @IsString()
+  pin?: string;
+
+  @IsOptional()
+  @IsString()
+  stateProvince?: string;
+
+  @IsOptional()
+  @IsString()
+  bankName?: string;
+
+  @IsOptional()
+  @IsString()
+  bankAccountNo?: string;
+
+  @IsOptional()
+  @IsString()
+  ifscCode?: string;
 
   @IsOptional()
   @IsNumber()
-  pin_no?: number;
+  ctc?: number;
 
   @IsOptional()
   @IsString()
-  bank_name?: string;
+  @Length(1, 1)
+  status?: string;
 
   @IsOptional()
-  @IsString()
-  bank_ac_no?: string;
-
-  @IsOptional()
-  @IsString()
-  ifsc?: string;
-
-  @IsOptional()
-  @IsString()
-  pf_ac_no?: string;
-
-  @IsOptional()
-  @IsString()
-  UAN?: string;
-
-  @IsOptional()
-  @IsNumber()
-  basic_pay?: number;
-
-  @IsOptional()
-  @IsNumber()
-  target?: number;
-
-  @IsOptional()
-  @IsNumber()
-  half_yearly?: number;
-
-  @IsOptional()
-  @IsNumber()
-  yearly?: number;
-
-  @IsOptional()
-  @IsString()
-  emp_status?: string;
-
-  @IsOptional()
-  @IsNumber()
-  salary_status?: number;
-
-  @IsOptional()
-  @IsString()
-  remarks?: string;
-
-  @IsOptional()
-  @IsNumber()
-  amount?: number;
-
-  @IsOptional()
-  @IsString()
-  created_by?: string;
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => CreateEmployeeDocDto)
+  documents?: CreateEmployeeDocDto[];
 }

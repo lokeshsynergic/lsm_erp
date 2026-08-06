@@ -9,29 +9,46 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
+import { UseInterceptors, UploadedFiles } from '@nestjs/common';
+import { FilesInterceptor } from '@nestjs/platform-express';
 import { EmployeeService } from './employee.service';
 import { CreateEmployeeDto } from './dto/create-employee.dto';
 import { UpdateEmployeeDto } from './dto/update-employee.dto';
 import { Employee } from './entities/employee.entity';
 
-@Controller('employee')
+@Controller('master/emp')
 export class EmployeeController {
   constructor(private readonly employeeService: EmployeeService) {}
 
-  /**
-   * Add new employee
-   * POST /employee
-   */
+
   @Post()
   @HttpCode(HttpStatus.CREATED)
   async create(@Body() createEmployeeDto: CreateEmployeeDto): Promise<Employee> {
     return await this.employeeService.create(createEmployeeDto);
   }
 
-  /**
-   * Get all employees
-   * GET /employee
-   */
+  @Post(':empCode/documents')
+  @UseInterceptors(FilesInterceptor('files'))
+  async uploadDocuments(
+    @Param('empCode') empCode: string,
+    @UploadedFiles() files: Express.Multer.File[],
+    @Body() body: any,
+  ) {
+    console.log('📤 Upload Documents API called');
+    console.log('Files received:', files?.length || 0);
+    console.log('Body:', body);
+    
+    if (!files || files.length === 0) {
+      console.warn('⚠️  No files received. Body:', JSON.stringify(body));
+    }
+
+    return await this.employeeService.uploadDocuments(
+      empCode,
+      files || [],
+      body,
+    );
+  }
+
   @Get()
   async findAll(): Promise<Employee[]> {
     return await this.employeeService.findAll();
@@ -46,28 +63,19 @@ export class EmployeeController {
     return await this.employeeService.getActiveEmployees();
   }
 
-  /**
-   * Get employee by ID
-   * GET /employee/:id
-   */
+  
   @Get(':id')
   async findOne(@Param('id') id: string): Promise<Employee> {
     return await this.employeeService.findOne(+id);
   }
 
-  /**
-   * Get employee by emp_code
-   * GET /employee/code/:empCode
-   */
+  
   @Get('code/:empCode')
   async findByEmpCode(@Param('empCode') empCode: string): Promise<Employee> {
     return await this.employeeService.findByEmpCode(empCode);
   }
 
-  /**
-   * Update employee
-   * PUT /employee/:id
-   */
+
   @Put(':id')
   async update(
     @Param('id') id: string,
@@ -76,10 +84,7 @@ export class EmployeeController {
     return await this.employeeService.update(+id, updateEmployeeDto);
   }
 
-  /**
-   * Delete employee
-   * DELETE /employee/:id
-   */
+  
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
   async remove(@Param('id') id: string): Promise<void> {
