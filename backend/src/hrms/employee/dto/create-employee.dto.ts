@@ -24,6 +24,20 @@ export class CreateEmployeeDocDto {
   documentPath?: string;
 }
 
+export class CreateEducationDto {
+  @IsOptional()
+  @IsString()
+  qualification?: string;
+
+  @IsOptional()
+  @IsString()
+  institute?: string;
+
+  @IsOptional()
+  @IsNumber()
+  yearOfPassing?: number;
+}
+
 export class CreateEmployeeDto {
   @IsOptional()
   @IsString()
@@ -162,4 +176,10 @@ export class CreateEmployeeDto {
   @ValidateNested({ each: true })
   @Type(() => CreateEmployeeDocDto)
   documents?: CreateEmployeeDocDto[];
+
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => CreateEducationDto)
+  education?: CreateEducationDto[];
 }

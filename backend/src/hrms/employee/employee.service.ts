@@ -30,21 +30,6 @@ export class EmployeeService {
     return await this.employeeRepository.save(employee);
   }
 
-  //  async create(createEmployeeDto: CreateEmployeeDto): Promise<Employee> {
-
-  // const employee = this.employeeRepository.create({
-  //   ...createEmployeeDto,
-  //   createdAt: new Date(),
-
-  //   documents: createEmployeeDto.documents?.map(doc => ({
-  //     ...doc,
-  //     empCode: createEmployeeDto.empCode,
-  //   })),
-  // });
-
-  // return await this.employeeRepository.save(employee);
-  // }
-
   async uploadDocuments(
     empCode: string,
     files: Express.Multer.File[],

@@ -12,7 +12,7 @@ async function bootstrap() {
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     credentials: true,
   });
-  const port = process.env.APP_PORT ?? 3000;
+  const port = process.env.PORT || process.env.APP_PORT || 3000;
   await app.listen(port);
   
   // Clean NestJS-formatted log:

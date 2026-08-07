@@ -4,7 +4,9 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { HrmsModule } from './hrms/hrms.module';
+import { CrmModule } from './crm/crm.module';
 import { Employee } from './hrms/employee/entities/employee.entity';
+import { ServiceCall } from './crm/call_log/entities/service-call.entity';
 
 @Module({
   imports: [
@@ -19,10 +21,11 @@ import { Employee } from './hrms/employee/entities/employee.entity';
       password: process.env.DATABASE_PASSWORD || 'postgres',
       database: process.env.DATABASE_NAME || 'lsm_erp',
       autoLoadEntities: true,
-      entities: [Employee],
+      entities: [Employee, ServiceCall],
       synchronize: true,
     }),
     HrmsModule,
+    CrmModule,
   ],
   controllers: [AppController],
   providers: [AppService],

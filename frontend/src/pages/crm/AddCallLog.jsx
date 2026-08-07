@@ -1,8 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Layout from "../../components/Layout";
+import { useNavigate, useParams } from "react-router-dom";
 import "../../styles/employeeAdd.css"; 
 import { PDFDownloadLink } from '@react-pdf/renderer';
-import { CallLogPDF } from './CallLogPDF';// Using the same styling structure as EmployeeAdd
+import { CallLogPDF } from './CallLogPDF';
+import { saveCalllog, getCalllogById } from "../../services/crm/call_log";
 
 const tabs = [
   "Call Details",
@@ -10,30 +12,58 @@ const tabs = [
   "Service Details",
   "Action Taken",
   "Spare Parts Used",
-  "Equipment Status",
 ];
 
 function AddCallLog() {
+  const navigate = useNavigate();
+  const { id } = useParams();
   const [activeTab, setActiveTab] = useState(tabs[0]);
   const [showServiceType, setShowServiceType] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
 
   // Form State
   const [formData, setFormData] = useState({
     callNo: "",
-    date: "",
-    hospital: "",
+    date: new Date().toISOString().split('T')[0],
+    customer: "",
     department: "",
-    contactPerson: "",
+    contact_person: "",
     mobile: "",
     engineer: "",
-    equipmentName: "",
+    equipment_name: "",
     make: "",
     model: "",
-    serialNo: "",
-    assetId: "",
-    serviceType: [],
-    complaintReported: "",
+    serial_no: "",
+    asset_id: "",
+    service_type: "",
+    complaint_reported: "",
+    action_taken: "",
+    spare_parts: "",
   });
+
+  // Load call log if editing
+  useEffect(() => {
+    if (id) {
+      loadCallLog();
+    }
+  }, [id]);
+
+  const loadCallLog = async () => {
+    try {
+      setLoading(true);
+      const data = await getCalllogById(id);
+      setFormData(data);
+      setIsSaved(true);
+    } catch (err) {
+      setError(err.message);
+      console.error("Error loading call log:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -41,6 +71,7 @@ function AddCallLog() {
       ...prev,
       [name]: value,
     }));
+    setIsSaved(false);
   };
 
   const handleCheckboxChange = (e) => {
@@ -51,11 +82,26 @@ function AddCallLog() {
         ? [...prev.serviceType, value]
         : prev.serviceType.filter((item) => item !== value),
     }));
+    setIsSaved(false);
   };
 
-  const handleSave = () => {
-    console.log("Form Data:", formData);
-    // Handle form submit logic here
+  const handleSave = async () => {
+    try {
+      setSaving(true);
+      setError("");
+      const response = await saveCalllog(formData, id);
+      setIsSaved(true);
+      
+      // Navigate back to call log list after successful save
+      setTimeout(() => {
+        navigate("/crm/call-log");
+      }, 1500);
+    } catch (err) {
+      setError(err.message || "Error saving call log");
+      console.error("Save error:", err);
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -67,83 +113,96 @@ function AddCallLog() {
           <span className="separator">›</span>
           <span>Call Log</span>
           <span className="separator">›</span>
-          <span>New Call Log</span>
+          <span>{id ? "Edit" : "New"} Call Log</span>
         </div>
-        <PDFDownloadLink
-  document={<CallLogPDF formData={formData} />}
-  fileName="Call_Log.pdf"
-  style={{ textDecoration: 'none' }}
->
-  {({ loading }) => (
-    <button className="save-btn" style={{ backgroundColor: '#0F172A', color: '#FFF' }}>
-      {loading ? 'Generating PDF...' : 'Download PDF'}
-    </button>
-  )}
-</PDFDownloadLink>
 
-        {/* Page Heading & Actions */}
-        <div className="employee-add-heading">
-          <div>
-            <h1>New Call Log</h1>
-            <span className="not-saved-badge">Not Saved</span>
+        {error && (
+          <div style={{ 
+            padding: "12px 16px", 
+            marginBottom: "16px", 
+            backgroundColor: "#fee", 
+            color: "#c33", 
+            borderRadius: "6px",
+            border: "1px solid #fcc"
+          }}>
+            Error: {error}
           </div>
-          <button type="button" className="save-btn" onClick={handleSave}>
-            Save
-          </button>
-        </div>
+        )}
 
-        {/* Navigation Tabs */}
-        <div className="employee-add-tabs">
-          {tabs.map((tab) => (
-            <button
-              key={tab}
-              type="button"
-              className={`employee-tab ${activeTab === tab ? "active" : ""}`}
-              onClick={() => setActiveTab(tab)}
+        {isSaved && !saving && (
+          <div style={{ 
+            padding: "12px 16px", 
+            marginBottom: "16px", 
+            backgroundColor: "#efe", 
+            color: "#3c3", 
+            borderRadius: "6px",
+            border: "1px solid #cfc"
+          }}>
+            ✓ Call log saved successfully!
+          </div>
+        )}
+
+        {loading ? (
+          <p>Loading...</p>
+        ) : (
+          <>
+            {/* <PDFDownloadLink
+              document={<CallLogPDF formData={formData} />}
+              fileName="Call_Log.pdf"
+              style={{ textDecoration: 'none' }}
             >
-              {tab}
-            </button>
-          ))}
-        </div>
+              {({ loading }) => (
+                <button className="save-btn" style={{ backgroundColor: '#0F172A', color: '#FFF' }}>
+                  {loading ? 'Generating PDF...' : 'Download PDF'}
+                </button>
+              )}
+            </PDFDownloadLink> */}
 
-        {/* Form Container */}
-        <div className="employee-add-form">
+            {/* Page Heading & Actions */}
+            <div className="employee-add-heading">
+              <div>
+                <h1>{id ? "Edit" : "New"} Call Log</h1>
+                <span className={`not-saved-badge ${isSaved ? "saved" : ""}`}>
+                  {isSaved ? "Saved" : "Not Saved"}
+                </span>
+              </div>
+              <button 
+                type="button" 
+                className="save-btn" 
+                onClick={handleSave}
+                disabled={saving}
+              >
+                {saving ? "Saving..." : "Save"}
+              </button>
+            </div>
+
+            {/* Navigation Tabs */}
+            <div className="employee-add-tabs">
+              {tabs.map((tab) => (
+                <button
+                  key={tab}
+                  type="button"
+                  className={`employee-tab ${activeTab === tab ? "active" : ""}`}
+                  onClick={() => setActiveTab(tab)}
+                >
+                  {tab}
+                </button>
+              ))}
+            </div>
+
+            {/* Form Container */}
+            <div className="employee-add-form">
           {/* Tab 1: Call Details */}
           {activeTab === "Call Details" && (
             <div className="form-grid">
-              <div className="form-field">
-                <label>
-                  Call No <span className="required">*</span>
-                </label>
-                <input
-                  type="text"
-                  name="callNo"
-                  value={formData.callNo}
-                  onChange={handleInputChange}
-                  placeholder="Enter call number"
-                />
-              </div>
-
-              <div className="form-field">
-                <label>
-                  Date <span className="required">*</span>
-                </label>
-                <input
-                  type="date"
-                  name="date"
-                  value={formData.date}
-                  onChange={handleInputChange}
-                />
-              </div>
-
               <div className="form-field">
                 <label>
                   Hospital / Customer <span className="required">*</span>
                 </label>
                 <input
                   type="text"
-                  name="hospital"
-                  value={formData.hospital}
+                  name="customer"
+                  value={formData.customer}
                   onChange={handleInputChange}
                   placeholder="Enter hospital or customer name"
                 />
@@ -164,8 +223,8 @@ function AddCallLog() {
                 <label>Contact Person</label>
                 <input
                   type="text"
-                  name="contactPerson"
-                  value={formData.contactPerson}
+                  name="contact_person"
+                  value={formData.contact_person}
                   onChange={handleInputChange}
                   placeholder="Enter contact person name"
                 />
@@ -202,8 +261,8 @@ function AddCallLog() {
                 <label>Equipment Name</label>
                 <input
                   type="text"
-                  name="equipmentName"
-                  value={formData.equipmentName}
+                  name="equipment_name"
+                  value={formData.equipment_name}
                   onChange={handleInputChange}
                   placeholder="Enter equipment name"
                 />
@@ -235,8 +294,8 @@ function AddCallLog() {
                 <label>Serial No</label>
                 <input
                   type="text"
-                  name="serialNo"
-                  value={formData.serialNo}
+                  name="serial_no"
+                  value={formData.serial_no}
                   onChange={handleInputChange}
                   placeholder="Enter serial number"
                 />
@@ -246,8 +305,8 @@ function AddCallLog() {
                 <label>Asset ID</label>
                 <input
                   type="text"
-                  name="assetId"
-                  value={formData.assetId}
+                  name="asset_id"
+                  value={formData.asset_id}
                   onChange={handleInputChange}
                   placeholder="Enter asset ID"
                 />
@@ -262,9 +321,9 @@ function AddCallLog() {
                 <div className="form-field full-width">
                   <label>Complaint Reported</label>
                   <textarea
-                    name="complaintReported"
+                    name="complaint_reported"
                     rows="4"
-                    value={formData.complaintReported}
+                    value={formData.complaint_reported}
                     onChange={handleInputChange}
                     placeholder="Enter complaint details"
                   />
@@ -275,30 +334,18 @@ function AddCallLog() {
               <div className="form-section">
                 <button
                   type="button"
-                  className="section-toggle"
-                  onClick={() => setShowServiceType((open) => !open)}
                 >
                   Service Types
-                  <span className={`chevron ${showServiceType ? "open" : ""}`}>
-                    ⌃
-                  </span>
                 </button>
-
-                {showServiceType && (
-                  <div className="checkbox-group" style={{ padding: "16px 0", display: "flex", gap: "20px", flexWrap: "wrap" }}>
-                    {["Breakdown", "PM", "Installation", "Calibration", "Inspection"].map((type) => (
-                      <label key={type} style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" }}>
-                        <input
-                          type="checkbox"
-                          value={type}
-                          checked={formData.serviceType.includes(type)}
-                          onChange={handleCheckboxChange}
-                        />
-                        {type}
-                      </label>
-                    ))}
+                  <div className="checkbox-group" >
+                    <select name="service_type" value={formData.service_type} onChange={handleInputChange}>
+                      <option value="Breakdown">Breakdown</option>
+                      <option value="PM">PM</option>
+                      <option value="Installation">Installation</option>
+                      <option value="Calibration">Calibration</option>
+                      <option value="Inspection">Inspection</option>
+                    </select>
                   </div>
-                )}
               </div>
             </>
           )}
@@ -308,9 +355,9 @@ function AddCallLog() {
                 <div className="form-field full-width">
                   <label>Action Taken</label>
                   <textarea
-                    name="actionTaken"
+                    name="action_taken"
                     rows="4"
-                    value={formData.actionTaken}
+                    value={formData.action_taken}
                     onChange={handleInputChange}
                     placeholder="Enter action taken"
                   />
@@ -335,9 +382,9 @@ function AddCallLog() {
                 <div className="form-field full-width">
                   <label>Spare Parts Details</label>
                   <textarea
-                    name="sparePartsDetails"
+                    name="spare_parts"
                     rows="4"
-                    value={formData.sparePartsDetails}
+                    value={formData.spare_parts}
                     onChange={handleInputChange}
                     placeholder="Enter spare parts details"
                   />
@@ -357,40 +404,10 @@ function AddCallLog() {
             </>
           )}
 
-          {activeTab === "Equipment Status" && (
-            <>
-           
-               <div className="form-grid">
-                <button
-                  type="button"
-                  className="section-toggle"
-                  onClick={() => setShowServiceType((open) => !open)}
-                >
-                  Equipment Status
-                  <span className={`chevron ${showServiceType ? "open" : ""}`}>
-                   
-                  </span>
-                </button>
-
-                {showServiceType && (
-                  <div className="checkbox-group" style={{ padding: "16px 0", display: "flex", gap: "20px", flexWrap: "wrap" }}>
-                    {["Breakdown", "PM", "Installation", "Calibration", "Inspection"].map((type) => (
-                      <label key={type} style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" }}>
-                        <input
-                          type="checkbox"
-                          value={type}
-                          checked={formData.serviceType.includes(type)}
-                          onChange={handleCheckboxChange}
-                        />
-                        {type}
-                      </label>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </>
-          )}
-        </div>
+          
+            </div>
+          </>
+        )}
       </div>
     </Layout>
   );
