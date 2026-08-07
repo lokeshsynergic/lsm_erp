@@ -239,9 +239,6 @@ function EmployeeAdd() {
           console.log(`Adding file ${index}:`, doc.upload);
           formData.append("files", doc.upload);
         });
-
-        // Add document metadata (use the first document's info for now)
-        // Backend expects docId and documentNo in the body
         formData.append("docId", docsWithFiles[0].documentName || "");
         formData.append("documentNo", docsWithFiles[0].documentId || "");
 
@@ -669,6 +666,7 @@ function EmployeeAdd() {
                       <label>Degree / Qualification</label>
                       <input
                         type="text"
+                        name="qualification"
                         placeholder="e.g. B.Tech / MBA"
                         value={edu.degree}
                         onChange={(e) =>
@@ -682,6 +680,7 @@ function EmployeeAdd() {
                       <input
                         type="text"
                         placeholder="University Name"
+                        name="institute"
                         value={edu.institute}
                         onChange={(e) =>
                           handleEduChange(index, "institute", e.target.value)
@@ -694,6 +693,7 @@ function EmployeeAdd() {
                       <input
                         type="number"
                         placeholder="YYYY"
+                        name="yearOfPassing"
                         value={edu.yearOfPassing}
                         onChange={(e) =>
                           handleEduChange(index, "yearOfPassing", e.target.value)

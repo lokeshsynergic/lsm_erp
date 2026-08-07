@@ -33,12 +33,12 @@ function Home() {
             <span>Overview</span>
             <h1>Dashboard</h1>
           </div>
-          <button type="button" className="dashboard-action">
+          {/* <button type="button" className="dashboard-action">
             Export Report
-          </button>
+          </button> */}
         </div>
 
-        <div className="dashboard-grid">
+        {/* <div className="dashboard-grid">
           {kpiData.map((item) => (
             <div className={`dashboard-card ${item.tone}`} key={item.label}>
               <div className="card-icon">{item.label.charAt(0)}</div>
@@ -47,9 +47,9 @@ function Home() {
               <small>{item.trend}</small>
             </div>
           ))}
-        </div>
+        </div> */}
 
-        <div className="dashboard-panels">
+        {/* <div className="dashboard-panels">
           <section className="chart-panel">
             <div className="panel-heading">
               <div>
@@ -95,7 +95,7 @@ function Home() {
               ))}
             </div>
           </aside>
-        </div>
+        </div> */}
       </div>
     </Layout>
   );

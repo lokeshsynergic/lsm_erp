@@ -57,6 +57,7 @@
 .employee-list-table-wrap th {
   text-align: left;
   padding: 14px 10px;
+  background-color: #f3f4f6;
   color: #6b6b6b;
   font-size: 12px;
   font-weight: 800;

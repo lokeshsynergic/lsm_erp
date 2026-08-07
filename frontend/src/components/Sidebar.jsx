@@ -3,7 +3,6 @@ import { NavLink } from "react-router-dom";
 import "./Sidebar.css";
 
 const menuItems = [
-  { label: "Home", icon: "🛠️", to: "/dashboard" },
   { label: "Accounting", icon: "🧮", expandable: true, hidden: true },
   { label: "Buying", icon: "🛍️", hidden: true },
   { label: "Selling", icon: "🗂️", hidden: true },
@@ -43,30 +42,20 @@ const menuItems = [
 ];
 
 function Sidebar() {
-  const [publicOpen, setPublicOpen] = useState(true);
   const [openSubmenu, setOpenSubmenu] = useState("HRMS");
   const [openNestedSubmenu, setOpenNestedSubmenu] = useState("Master");
 
   return (
     <aside className="sidebar">
-      <button
-        type="button"
-        className="sidebar-section-title"
-        onClick={() => setPublicOpen((open) => !open)}
-      >
-        <span className={`caret ${publicOpen ? "open" : ""}`}>⌄</span>
-        PUBLIC
-      </button>
-
-      {publicOpen && (
-        <ul>
-          {menuItems
-            .filter((item) => !item.hidden)
-            .map((item) => {
+      <ul>
+        {menuItems
+          .filter((item) => !item.hidden)
+          .map((item) => {
             if (item.submenu) {
               const isOpen = openSubmenu === item.label;
               return (
-                <li key={item.label} className="has-submenu">
+                <li key={item.label} className="has-submenu layer-1">
+                  {/* LEVEL 1: HRMS, CRM */}
                   <button
                     type="button"
                     className="sidebar-link"
@@ -82,16 +71,16 @@ function Sidebar() {
                   </button>
 
                   {isOpen && (
-                    <ul className="submenu">
+                    <ul className="submenu layer-2-menu">
                       {item.submenu.map((sub) => {
-                        // Handle nested submenus (e.g., Master > Department, Designation, etc.)
                         if (sub.submenu) {
                           const isNestedOpen = openNestedSubmenu === sub.label;
                           return (
-                            <li key={sub.label} className="has-submenu">
+                            <li key={sub.label} className="has-submenu layer-2">
+                              {/* LEVEL 2: Master */}
                               <button
                                 type="button"
-                                className="sidebar-sublink"
+                                className="sidebar-sublink master-btn"
                                 onClick={() =>
                                   setOpenNestedSubmenu(
                                     isNestedOpen ? null : sub.label
@@ -107,10 +96,12 @@ function Sidebar() {
                                   ⌄
                                 </span>
                               </button>
+
                               {isNestedOpen && (
-                                <ul className="submenu nested-submenu">
+                                <ul className="submenu nested-submenu layer-3-menu">
                                   {sub.submenu.map((nested) => (
-                                    <li key={nested.label}>
+                                    <li key={nested.label} className="layer-3">
+                                      {/* LEVEL 3: Department, Employee */}
                                       <NavLink
                                         to={nested.to}
                                         className="sidebar-sublink"
@@ -124,10 +115,9 @@ function Sidebar() {
                             </li>
                           );
                         }
-                        
-                        // Regular submenu item without further nesting
+
                         return (
-                          <li key={sub.label}>
+                          <li key={sub.label} className="layer-2">
                             <NavLink to={sub.to} className="sidebar-sublink">
                               {sub.label}
                             </NavLink>
@@ -141,33 +131,24 @@ function Sidebar() {
             }
 
             return (
-              <li key={item.label}>
+              <li key={item.label} className="layer-1">
                 {item.to ? (
                   <NavLink to={item.to} className="sidebar-link">
                     <span className="menu-icon">{item.icon}</span>
                     <span>{item.label}</span>
-                    {item.expandable && (
-                      <span className="expand-caret">⌄</span>
-                    )}
                   </NavLink>
                 ) : (
                   <div className="sidebar-link">
                     <span className="menu-icon">{item.icon}</span>
                     <span>{item.label}</span>
-                    {item.expandable && (
-                      <span className="expand-caret">⌄</span>
-                    )}
                   </div>
                 )}
               </li>
             );
           })}
-        </ul>
-      )}
+      </ul>
     </aside>
   );
 }
 
 export default Sidebar;
-
-

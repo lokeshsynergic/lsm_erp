@@ -2,7 +2,8 @@ import { NavLink, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { getCategory } from "../../services/hrms/masterService";
 import Layout from "../../components/Layout";
-import "../../styles/category.css";
+
+import "../../styles/main.css";
 
 function Category() {
  const [categoryData, setCategoryData] = useState([]);
@@ -34,8 +35,8 @@ function Category() {
 
   return (
     <Layout>
-      <div className="category-list">
-        <div className="category-list-heading">
+      <div className="department-list">
+        <div className="department-list-heading">
           <div>
             <span>HRMS</span>
             <h1>Category</h1>
@@ -45,7 +46,7 @@ function Category() {
           </NavLink>
         </div>
 
-        <div className="category-list-table-wrap">
+        <div className="department-list-table-wrap">
           <table>
             <thead>
               <tr>
@@ -58,14 +59,13 @@ function Category() {
             <tbody>
               {categoryData.map((category, index) => (
                 <tr key={category.cat_id}>
-                  <td>{index + 1}</td>
-                  <td>{category.category_name}</td>
-                  <td>
+                  <td className="table-cell">{index + 1}</td>
+                  <td className="table-cell">{category.category_name}</td>
+                  <td className="table-cell">
                     <button
                       className="edit-btn"
                       onClick={() => handleEdit(category.cat_id)}
                     >
-                      Edit
                     </button>
                   </td>
                 </tr>

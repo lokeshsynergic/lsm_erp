@@ -57,18 +57,18 @@ function CallLog() {
           <tbody>
             {callLogs.map((log) => (
               <tr key={log.id}>
-                <td>{log.contactName}</td>
-                <td>{log.phoneNumber}</td>
-                <td>{log.callDate}</td>
-                <td>{log.callTime}</td>
-                <td>{log.duration}</td>
-                <td>{log.notes}</td>
-                <td>
+                <td className="table-cell">{log.contactName}</td>
+                <td className="table-cell">{log.phoneNumber}</td>
+                <td className="table-cell">{log.callDate}</td>
+                <td className="table-cell">{log.callTime}</td>
+                <td className="table-cell">{log.duration}</td>
+                <td className="table-cell">{log.notes}</td>
+                <td className="table-cell">
                   <span className={`status ${log.status.toLowerCase()}`}>
                     {log.status}
                   </span>
                 </td>
-                <td>
+                <td className="table-cell">
                   <button className="btn-edit">Edit</button>
                   <button className="btn-delete">Delete</button>
                 </td>

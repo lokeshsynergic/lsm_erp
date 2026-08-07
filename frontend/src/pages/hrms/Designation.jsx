@@ -1,6 +1,7 @@
 import { NavLink, useNavigate, useParams } from "react-router-dom";
 import Layout from "../../components/Layout";
 import "../../styles/department.css";
+import "../../styles/main.css";
 import { getDesignation } from "../../services/hrms/masterService";
 import { useState, useEffect } from "react";
 
@@ -53,7 +54,7 @@ function Designation() {
           </NavLink>
         </div>
 
-        <div className="designation-list-table-wrap">
+        <div className="department-list-table-wrap">
           <table>
             <thead>
               <tr>
@@ -66,13 +67,13 @@ function Designation() {
             <tbody>
               {designationData.map((designation, index) => (
                 <tr key={designation.desig_id}>
-                  <td>{index + 1}</td>
-                  <td>{designation.designation_name}</td>
-                  <td>
+                  <td className="table-cell">{index + 1}</td>
+                  <td className="table-cell">{designation.designation_name}</td>
+                  <td className="table-cell">
                     <button className="edit-btn"
                       onClick={() => handleEdit(designation.desig_id)}
                     >
-                      Edit
+                    
                     </button>
                   </td>
                 </tr>

@@ -38,17 +38,17 @@ function About() {
           <tbody>
             {requestData.map((item) => (
               <tr key={item.id}>
-                <td>{item.title}</td>
+                <td className="table-cell">{item.title}</td>
 
-                <td>
+                <td className="table-cell">
                   <span className="status">
                     {item.status}
                   </span>
                 </td>
 
-                <td>{item.purpose}</td>
-                <td>{item.id}</td>
-                <td>{item.age}</td>
+                <td className="table-cell">{item.purpose}</td>
+                <td className="table-cell">{item.id}</td>
+                <td className="table-cell">{item.age}</td>
               </tr>
             ))}
           </tbody>

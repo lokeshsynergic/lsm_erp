@@ -2,7 +2,7 @@ import { NavLink, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { getShift } from "../../../services/hrms/masterService";
 import Layout from "../../../components/Layout";
-import "../../../styles/category.css";
+import "../../../styles/main.css";
 
 function Shift() {
  const [shiftData, setShiftData] = useState([]);
@@ -43,7 +43,7 @@ function Shift() {
           </NavLink>
         </div>
 
-        <div className="shift-list-table-wrap">
+        <div className="department-list-table-wrap">
           <table>
             <thead>
               <tr>
@@ -61,19 +61,18 @@ function Shift() {
             <tbody>
               {shiftData.map((shift, index) => (
                 <tr key={shift.shiftCode}>
-                  <td>{index + 1}</td>
-                  <td>{shift.shiftName}</td>
-                  <td>{shift.startTime}</td>
-                  <td>{shift.endTime}</td>
-                  <td>{shift.graceInTime}</td>
-                  <td>{shift.graceOutTime}</td>
-                  <td>{shift.minimumWorkingHours}</td>
-                  <td>
+                  <td className="table-cell">{index + 1}</td>
+                  <td className="table-cell">{shift.shiftName}</td>
+                  <td className="table-cell">{shift.startTime}</td>
+                  <td className="table-cell">{shift.endTime}</td>
+                  <td className="table-cell">{shift.graceInTime}</td>
+                  <td className="table-cell">{shift.graceOutTime}</td>
+                  <td className="table-cell">{shift.minimumWorkingHours}</td>
+                  <td className="table-cell">
                     <button
                       className="edit-btn"
                       onClick={() => handleEdit(shift.shiftCode)}
                     >
-                      Edit
                     </button>
                   </td>
                 </tr>

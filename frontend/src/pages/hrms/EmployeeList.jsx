@@ -2,6 +2,7 @@ import { NavLink, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import Layout from "../../components/Layout";
 import "../../styles/employeeList.css";
+import "../../styles/main.css";
 import { getEmployee } from "../../services/hrms/employeeService";
 
 function EmployeeList() {
@@ -31,8 +32,8 @@ function EmployeeList() {
      };
   return (
     <Layout>
-      <div className="employee-list">
-        <div className="employee-list-heading">
+      <div className="department-list">
+        <div className="department-list-heading">
           <div>
             <span>HRMS</span>
             <h1>Employee</h1>
@@ -42,7 +43,7 @@ function EmployeeList() {
           </NavLink>
         </div>
 
-        <div className="employee-list-table-wrap">
+        <div className="department-list-table-wrap">
           <table>
             <thead>
               <tr>
@@ -58,18 +59,22 @@ function EmployeeList() {
             <tbody>
               {employeeData.map((employee) => (
                 <tr key={employee.emp_code}>
-                  <td>{employee.emp_code}</td>
-                  <td>{employee.first_name} {employee.middle_name} {employee.last_name}</td>
-                  <td>{employee.designation}</td>
-                  <td>{employee.department}</td>
-                  <td>
+                  <td className="table-cell">{employee.emp_code}</td>
+                  <td className="table-cell">{employee.first_name} {employee.middle_name} {employee.last_name}</td>
+                  <td className="table-cell">{employee.designation}</td>
+                  <td className="table-cell">{employee.department}</td>
+                  <td className="table-cell">
                     <span
                       className={`status-badge ${employee.status.toLowerCase()}`}
                     >
                       {employee.status}
                     </span>
                   </td>
-                  <td>{employee.date_of_joining}</td>
+                 <td className="table-cell">
+  {employee.date_of_joining
+    ? new Date(employee.date_of_joining).toLocaleDateString('en-GB')
+    : ''}
+</td>
                 </tr>
               ))}
             </tbody>

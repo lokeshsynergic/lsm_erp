@@ -1,6 +1,7 @@
 import { NavLink, useNavigate, useParams } from "react-router-dom";
 import Layout from "../../components/Layout";
 import "../../styles/department.css";
+import "../../styles/main.css";
 import { getDepartment } from "../../services/hrms/masterService";
 import { useState, useEffect } from "react";
 
@@ -66,13 +67,12 @@ function Department() {
             <tbody>
               {departmentData.map((department, index) => (
                 <tr key={department.dept_id}>
-                  <td>{index + 1}</td>
-                  <td>{department.department_name}</td>
-                  <td>
+                  <td className="table-cell">{index + 1}</td>
+                  <td className="table-cell">{department.department_name}</td>
+                  <td className="table-cell">
                     <button className="edit-btn"
                       onClick={() => handleEdit(department.dept_id)}
                     >
-                      Edit
                     </button>
                   </td>
                 </tr>
