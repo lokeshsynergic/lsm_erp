@@ -2,12 +2,11 @@ import Layout from "../components/Layout";
 import requestData from "../data/requestData";
 import "../styles/about.css";
 
-function Dashboard() {
+function About() {
   return (
     <Layout>
 
       <div className="container">
-
         <h2>Material Requests</h2>
 
         <div className="filter-bar">
@@ -61,4 +60,4 @@ function Dashboard() {
   );
 }
 
-export default Dashboard;
+export default About;

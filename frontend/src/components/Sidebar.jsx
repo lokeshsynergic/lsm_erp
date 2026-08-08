@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { NavLink } from "react-router-dom";
 import "./Sidebar.css";
+import { BadgeCheck, BriefcaseBusiness, Building2, ChevronDown, Clock3, FileText, GraduationCap, IdCard, Tags, UserRound, Users } from "lucide-react";
+
 
 const menuItems = [
   { label: "Accounting", icon: "🧮", expandable: true, hidden: true },
@@ -10,19 +12,50 @@ const menuItems = [
   { label: "Assets", icon: "🗄️", hidden: true },
   {
     label: "HRMS",
-    icon: "🪪",
+    // icon: "🪪",
+    icon: <BriefcaseBusiness size={18} strokeWidth={1.8} color="currentColor" />,
     expandable: true,
     submenu: [
       {
         label: "Master",
+        icon: (
+          <GraduationCap
+             size={18} strokeWidth={1.8}
+            color="currentColor"
+          />
+        ),
         expandable: true,
         submenu: [
-          { label: "Department", to: "/hrms/department" },
-          { label: "Designation", to: "/hrms/designation" },
-          { label: "Category", to: "/hrms/category" },
-          { label: "Document", to: "/hrms/document" },
-          { label: "Shift", to: "/hrms/shift" },
-          { label: "Employee", to: "/hrms/employee" },
+          {
+            label: "Department",
+            icon: <Building2 size={16} />,
+            to: "/hrms/department",
+          },
+          {
+            label: "Designation",
+            icon: <BadgeCheck size={16} />,
+            to: "/hrms/designation",
+          },
+          {
+            label: "Category",
+            icon: <Tags size={16} />,
+            to: "/hrms/category",
+          },
+          {
+            label: "Document",
+            icon: <FileText size={16} />,
+            to: "/hrms/document",
+          },
+          {
+            label: "Shift",
+            icon: <Clock3 size={16} />,
+            to: "/hrms/shift",
+          },
+          {
+            label: "Employee",
+            icon: <UserRound size={16} />,
+            to: "/hrms/employee",
+          },
         ],
       },
     ],
@@ -30,10 +63,14 @@ const menuItems = [
   { label: "Manufacturing", icon: "🏭", hidden: true },
   {
     label: "CRM",
-    icon: "🥧",
+    // icon: "🥧",
+    icon: <Users size={18} strokeWidth={1.8} color="currentColor" />,
     expandable: true,
     submenu: [
-      { label: "Call Log", to: "/crm/call-log" },
+      { 
+        label: "Call Log", 
+        icon: <FileText size={16} />,
+        to: "/crm/call-log" },
     ],
   },
   { label: "Quality", icon: "🎯", hidden: true },
@@ -66,7 +103,7 @@ function Sidebar() {
                     <span className="menu-icon">{item.icon}</span>
                     <span>{item.label}</span>
                     <span className={`expand-caret ${isOpen ? "open" : ""}`}>
-                      ⌄
+                     <ChevronDown size={18} color="currentColor"  />
                     </span>
                   </button>
 
@@ -80,20 +117,21 @@ function Sidebar() {
                               {/* LEVEL 2: Master */}
                               <button
                                 type="button"
-                                className="sidebar-sublink master-btn"
+                                className="sidebar-link"
                                 onClick={() =>
                                   setOpenNestedSubmenu(
                                     isNestedOpen ? null : sub.label
                                   )
                                 }
                               >
+                                <span className="menu-icon">{sub.icon}</span>
                                 <span>{sub.label}</span>
                                 <span
                                   className={`expand-caret ${
                                     isNestedOpen ? "open" : ""
                                   }`}
                                 >
-                                  ⌄
+                                 <ChevronDown size={18} color="currentColor"  />
                                 </span>
                               </button>
 
@@ -104,8 +142,10 @@ function Sidebar() {
                                       {/* LEVEL 3: Department, Employee */}
                                       <NavLink
                                         to={nested.to}
-                                        className="sidebar-sublink"
+                                        // className="sidebar-sublink"
+                                        className="sidebar-link"
                                       >
+                                        <span className="menu-icon">{nested.icon}</span>
                                         {nested.label}
                                       </NavLink>
                                     </li>
@@ -118,7 +158,11 @@ function Sidebar() {
 
                         return (
                           <li key={sub.label} className="layer-2">
-                            <NavLink to={sub.to} className="sidebar-sublink">
+                            <NavLink to={sub.to} 
+                            // className="sidebar-sublink"
+                            className="sidebar-link"
+                            >
+                              <span className="menu-icon">{sub.icon}</span>
                               {sub.label}
                             </NavLink>
                           </li>

@@ -2,7 +2,8 @@
   display: flex;
   min-width: 0;
   min-height: calc(100vh - 72px);
-  background: #fbf8fb;
+  /* background: #fbf8fb; */
+  background: #fff;
 }
 
 .content {

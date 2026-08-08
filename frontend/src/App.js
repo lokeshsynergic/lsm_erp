@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Home from "./pages/Home";
+import About from "./pages/About";
 import HrmsRoutes from "./routes/HrmsRoutes";
 import CrmRoutes from "./routes/CrmRoutes";
 
@@ -9,6 +10,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/dashboard" element={<Home />} />
+        <Route path="/about" element={<About />} />
         <Route path="/hrms/*" element={<HrmsRoutes />} />
         <Route path="/crm/*" element={<CrmRoutes />} />
       </Routes>

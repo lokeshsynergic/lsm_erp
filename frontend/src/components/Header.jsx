@@ -1,16 +1,19 @@
 import "./header.css";
+import logo from "../image/lsm_logo.jpeg"; // Adjust the path as needed
 
 function Header() {
   return (
     <header className="header">
       <div className="brand">
-        <div className="brand-mark">
+        <img src={logo} alt="ERP Logo" className="brand-logo_img" />
+        {/* <div className="brand-mark">
+          Logo
           <span>E</span>
         </div>
         <div>
           <div className="logo">ERP</div>
           <div className="brand-subtitle">Operations Desk</div>
-        </div>
+        </div> */}
       </div>
 
       <div className="search">

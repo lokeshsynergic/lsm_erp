@@ -42,7 +42,8 @@ function Department() {
 
   return (
     <Layout>
-      <div className="department-list">
+      {/* <div className="department-list"> */}
+      <div className="department-list-table-wrap">
         <div className="department-list-heading">
           <div>
             <span>HRMS</span>
@@ -54,7 +55,7 @@ function Department() {
           </NavLink>
         </div>
 
-        <div className="department-list-table-wrap">
+        <div className="table-container">
           <table>
             <thead>
               <tr>
