@@ -38,6 +38,24 @@ export class CreateEducationDto {
   yearOfPassing?: number;
 }
 
+export class CreateExperienceDto {
+  @IsOptional()
+  @IsString()
+  orgName?: string;
+
+  @IsOptional()
+  @IsString()
+  designationName?: string;
+
+  @IsOptional()
+  @IsNumber()
+  fromDate?: number;
+
+  @IsOptional()
+  @IsNumber()
+  toDate?: number;
+}
+
 export class CreateEmployeeDto {
   @IsOptional()
   @IsString()
@@ -182,4 +200,10 @@ export class CreateEmployeeDto {
   @ValidateNested({ each: true })
   @Type(() => CreateEducationDto)
   education?: CreateEducationDto[];
+
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => CreateExperienceDto)
+  experience?: CreateExperienceDto[];
 }

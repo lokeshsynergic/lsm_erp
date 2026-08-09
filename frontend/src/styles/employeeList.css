@@ -23,23 +23,6 @@
   font-size: 28px;
 }
 
-.add-employee-btn {
-  display: inline-flex;
-  align-items: center;
-  height: 40px;
-  padding: 0 18px;
-  border-radius: 10px;
-  background: #1c1c1c;
-  color: #ffffff;
-  font-size: 14px;
-  font-weight: 700;
-  text-decoration: none;
-}
-
-.add-employee-btn:hover {
-  background: #000000;
-}
-
 .employee-list-table-wrap {
   background: #ffffff;
   border: 1px solid #e0e0e0;
@@ -71,24 +54,6 @@
   font-size: 14px;
   color: #1c1c1c;
   border-bottom: 1px solid #f0f0f0;
-}
-
-.status-badge {
-  display: inline-block;
-  padding: 3px 10px;
-  border-radius: 999px;
-  font-size: 12px;
-  font-weight: 700;
-}
-
-.status-badge.active {
-  background: #e6f7ec;
-  color: #1c8a45;
-}
-
-.status-badge.inactive {
-  background: #f2f2f2;
-  color: #6b6b6b;
 }
 
 @media (max-width: 760px) {

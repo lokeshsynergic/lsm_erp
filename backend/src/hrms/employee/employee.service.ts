@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, DataSource } from 'typeorm';
 import { Employee } from './entities/employee.entity';
 import { CreateEmployeeDto } from './dto/create-employee.dto';
 import { UpdateEmployeeDto } from './dto/update-employee.dto';
@@ -17,17 +17,95 @@ export class EmployeeService {
     private employeeRepository: Repository<Employee>,
     @InjectRepository(EmployeeDoc)
     private employeeDocRepository: Repository<EmployeeDoc>,
+    private dataSource: DataSource,
   ) {}
 
   /**
-   * Create a new employee
+   * Create a new employee with education and experience records
    */
   async create(createEmployeeDto: CreateEmployeeDto): Promise<Employee> {
+    const { education, experience, ...employeeData } = createEmployeeDto;
+
     const employee = this.employeeRepository.create({
-      ...createEmployeeDto,
+      ...employeeData,
       createdAt: new Date(),
     });
-    return await this.employeeRepository.save(employee);
+    
+    const savedEmployee = await this.employeeRepository.save(employee);
+
+    // Ensure empCode exists before inserting related records
+    if (!savedEmployee.empCode) {
+      throw new BadRequestException('Employee code is required');
+    }
+
+    // Insert education records if provided
+    if (education && education.length > 0) {
+      await this.insertEducationRecords(savedEmployee.empCode, education);
+    }
+
+    // Insert experience records if provided (only those with fromDate and toDate)
+    if (experience && experience.length > 0) {
+      const validExperience = experience.filter((exp) => exp.fromDate && exp.toDate);
+      if (validExperience.length > 0) {
+        await this.insertExperienceRecords(savedEmployee.empCode, validExperience);
+      }
+    }
+
+    return savedEmployee;
+  }
+
+  /**
+   * Insert education records into md_hrms_employee_edu table
+   */
+  private async insertEducationRecords(
+    empCode: string,
+    education: any[],
+  ): Promise<void> {
+    for (const edu of education) {
+      await this.dataSource
+        .createQueryBuilder()
+        .insert()
+        .into('md_hrms_employee_edu')
+        .values({
+          emp_code: empCode,
+          degree_name: edu.qualification,
+          institute_university: edu.institute,
+          year_pass: edu.yearOfPassing,
+          created_by: 1, // Default value, can be passed in request if needed
+          created_at: new Date(),
+        })
+        .execute();
+    }
+  }
+
+  /**
+   * Insert experience records into md_hrms_employee_expe table
+   */
+  private async insertExperienceRecords(
+    empCode: string,
+    experience: any[],
+  ): Promise<void> {
+    for (const exp of experience) {
+      // Skip records without required fields (from_dt and to_dt)
+      if (!exp.fromDate || !exp.toDate) {
+        continue;
+      }
+
+      await this.dataSource
+        .createQueryBuilder()
+        .insert()
+        .into('md_hrms_employee_expe')
+        .values({
+          emp_code: empCode,
+          org_name: exp.orgName,
+          desig_name: exp.designationName,
+          from_dt: exp.fromDate,
+          to_dt: exp.toDate,
+          created_by: 1, // Default value, can be passed in request if needed
+          created_at: new Date(),
+        })
+        .execute();
+    }
   }
 
   async uploadDocuments(

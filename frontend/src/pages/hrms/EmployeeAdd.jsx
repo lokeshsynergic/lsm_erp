@@ -137,6 +137,19 @@ function EmployeeAdd() {
     }
   }, [id]);
 
+  // Calculate retirement date (60 years from date of birth)
+  useEffect(() => {
+    if (dateOfBirth) {
+      const birthDate = new Date(dateOfBirth);
+      const retirementDate = new Date(birthDate);
+      retirementDate.setFullYear(retirementDate.getFullYear() + 60);
+      
+      // Format date as YYYY-MM-DD for input field
+      const formattedDate = retirementDate.toISOString().split('T')[0];
+      setDateOfRetirement(formattedDate);
+    }
+  }, [dateOfBirth]);
+
   const loadEmployee = async () => {
     try {
       const data = await getEmployeeById(id);
@@ -223,6 +236,23 @@ function EmployeeAdd() {
       bankAccountNo: bankAccountNo,
       ifscCode: ifscCode,
       ctc: Number(ctc),
+      // Add education data
+      education: educationList
+        .filter((edu) => edu.degree && edu.institute && edu.yearOfPassing)
+        .map((edu) => ({
+          qualification: edu.degree,
+          institute: edu.institute,
+          yearOfPassing: Number(edu.yearOfPassing),
+        })),
+      // Add experience data
+      experience: experienceList
+        .filter((exp) => exp.organization && exp.designation && exp.fromDate && exp.toDate)
+        .map((exp) => ({
+          orgName: exp.organization,
+          designationName: exp.designation,
+          fromDate: new Date(exp.fromDate).getFullYear(),
+          toDate: new Date(exp.toDate).getFullYear(),
+        })),
     };
 
     try {
@@ -271,16 +301,16 @@ function EmployeeAdd() {
           <span className="separator">›</span>
           <span>Employee</span>
           <span className="separator">›</span>
-          <span>New Employee</span>
+          <span>{id ? "Edit Employee" : "New Employee"}</span>
         </div>
 
         <div className="employee-add-heading">
           <div>
-            <h1>New Employee</h1>
-            <span className="not-saved-badge">Not Saved</span>
+            <h1>{id ? "Edit Employee" : "New Employee"}</h1>
+            <span className="not-saved-badge">{id ? "Editing" : "Not Saved"}</span>
           </div>
           <button type="button" className="save-btn" onClick={handleSubmit}>
-            Save
+            {id ? "Update" : "Save"}
           </button>
         </div>
 
@@ -310,6 +340,8 @@ function EmployeeAdd() {
                     name="empCode" 
                     value={empCode}
                     onChange={(e) => setEmpCode(e.target.value)}
+                    disabled={id ? true : false}
+                    title={id ? "Employee code cannot be changed" : ""}
                   />
                 </div>
                 <div className="form-field">
