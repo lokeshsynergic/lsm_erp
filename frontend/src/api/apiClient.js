@@ -1,8 +1,7 @@
 import axios from "axios";
 
 const apiClient = axios.create({
-  //baseURL: "http://localhost:3001/",
-  baseURL: "https://lsmadminapi.opentech4u.co.in/",
+  baseURL: process.env.REACT_APP_API_END_POINT,
   timeout: 10000,
 });
 

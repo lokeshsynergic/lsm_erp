@@ -1,7 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { Logger } from '@nestjs/common';
-import { url } from 'inspector/promises';
+import * as bcrypt from 'bcrypt';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -14,6 +14,8 @@ async function bootstrap() {
   });
   const port = process.env.PORT || process.env.APP_PORT || 3000;
   await app.listen(port);
+  var pass = bcrypt.hashSync('admin', 10);
+  console.log(pass);
   
   // Clean NestJS-formatted log:
   Logger.log(`Application is running on: http://localhost:${port}`, 'Bootstrap');
