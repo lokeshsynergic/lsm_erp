@@ -169,61 +169,16 @@ export class EmployeeService {
     return results;
   }
 
-//   async uploadDocuments(
-//   empCode: string,
-//   files: Express.Multer.File[], // Note: Express.Multer.File is standard type for NestJS
-//   body: any,
-// ) {
-//   const employee = await this.employeeRepository.findOne({
-//     where: { empCode },
-//   });
+  async getempDocuments(empCode: string) {
+    return await this.employeeDocRepository
+      .createQueryBuilder('employee')
+      .leftJoin('md_hrms_document', 'doc', 'doc.doc_id = employee.doc_id')
+      .addSelect(['doc.document_name AS documentName'])
+      .where('employee.empCode = :empCode', { empCode })
+      .getRawMany();
+  }
 
-//   if (!employee) {
-//     throw new NotFoundException('Employee not found');
-//   }
 
-//   const uploadPath = path.join(
-//     process.cwd(),
-//     'uploads',
-//     'employees',
-//     empCode,
-//   );
-
-//   if (!fs.existsSync(uploadPath)) {
-//     fs.mkdirSync(uploadPath, { recursive: true });
-//   }
-
-//   const documentPromises = files.map(async (file) => {
-//     const fileName = `${Date.now()}_${file.originalname}`;
-//     const filePath = path.join(uploadPath, fileName);
-
-//     // Save physical file
-//     await fs.promises.writeFile(filePath, file.buffer);
-
-//     // Create & save DB entry
-//     const document = this.employeeDocRepository.create({
-//       empCode,
-//       docId: Number(body.docId),
-//       documentNo: body.documentNo,
-//       documentPath: `uploads/employees/${empCode}/${fileName}`,
-//     });
-
-//     return await this.employeeDocRepository.save(document);
-//   });
-
-//   return await Promise.all(documentPromises);
-// }
-
-  /**
-   * Get all employees
-   */
-  // async findAll(): Promise<Employee[]> {
-  //   return await this.employeeRepository.find({
-  //     order: {
-  //       firstName: 'DESC',
-  //     },
-  //   });
-  // }
 
     async findAll() {
       return await this.employeeRepository

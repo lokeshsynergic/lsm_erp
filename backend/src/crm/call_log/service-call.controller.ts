@@ -59,7 +59,7 @@ export class ServiceCallController {
    * Update service call
    * PUT /crm/call-log/:id
    */
-  @Put(':id')
+  @Post(':id')
   async update(
     @Param('id') id: string,
     @Body() updateServiceCallDto: UpdateServiceCallDto,

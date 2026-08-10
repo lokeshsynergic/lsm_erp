@@ -5,6 +5,7 @@ import "../../styles/employeeAdd.css";
 import { PDFDownloadLink } from '@react-pdf/renderer';
 import { CallLogPDF } from './CallLogPDF';
 import { saveCalllog, getCalllogById } from "../../services/crm/call_log";
+import { getEmployee } from "../../services/hrms/employeeService";
 
 const tabs = [
   "Call Details",
@@ -23,6 +24,7 @@ function AddCallLog() {
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
+  const [employees, setEmployees] = useState([]);
 
   // Form State
   const [formData, setFormData] = useState({
@@ -42,10 +44,25 @@ function AddCallLog() {
     complaint_reported: "",
     action_taken: "",
     spare_parts: "",
+    equipment_status: "",
   });
+
+  // Fetch employees for dropdown
+  useEffect(() => {
+    const fetchEmployees = async () => {
+      try {
+        const data = await getEmployee();
+        setEmployees(data);
+      } catch (err) {
+        console.error("Error fetching employees:", err);
+      }
+    };
+    fetchEmployees();
+  }, []);
 
   // Load call log if editing
   useEffect(() => {
+    console.log("useEffect triggered with id:", id);
     if (id) {
       loadCallLog();
     }
@@ -54,12 +71,16 @@ function AddCallLog() {
   const loadCallLog = async () => {
     try {
       setLoading(true);
+      setError("");
+      console.log("Loading call log with ID:", id);
       const data = await getCalllogById(id);
+      console.log("Call log data loaded:", data);
       setFormData(data);
       setIsSaved(true);
     } catch (err) {
-      setError(err.message);
       console.error("Error loading call log:", err);
+      setError(err.response?.data?.message || err.message || "Error loading call log");
+      setIsSaved(false);
     } finally {
       setLoading(false);
     }
@@ -142,10 +163,20 @@ function AddCallLog() {
           </div>
         )}
 
-        {loading ? (
-          <p>Loading...</p>
-        ) : (
-          <>
+        {loading && id && (
+          <div style={{ 
+            padding: "12px 16px", 
+            marginBottom: "16px", 
+            backgroundColor: "#f0f0f0", 
+            color: "#666", 
+            borderRadius: "6px",
+            border: "1px solid #ddd"
+          }}>
+            ⏳ Loading call log data...
+          </div>
+        )}
+
+        <>
             {/* <PDFDownloadLink
               document={<CallLogPDF formData={formData} />}
               fileName="Call_Log.pdf"
@@ -243,13 +274,32 @@ function AddCallLog() {
 
               <div className="form-field">
                 <label>Engineer</label>
-                <input
-                  type="text"
-                  name="engineer"
+                <select
+                  name="engineer" required
                   value={formData.engineer}
                   onChange={handleInputChange}
-                  placeholder="Enter engineer name"
-                />
+                >
+                  <option value="">-- Select Engineer --</option>
+                  {employees.map((emp) => (
+                    <option key={emp.emp_code} value={emp.emp_code}>
+                      {emp.emp_name} ({emp.emp_code})
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="form-field">
+                <label>Equipment Status</label>
+                <select
+                  name="equipment_status" required
+                  value={formData.equipment_status}
+                  onChange={handleInputChange}
+                >
+                  <option value="">-- Select Equipment Status --</option>
+                  <option value="Open">Open</option>
+                  <option value="Inprogress">Inprogress</option>
+                  <option value="Spareout">Spare Out</option>
+                  <option value="Close">Close</option>
+                </select>
               </div>
             </div>
           )}
@@ -332,20 +382,30 @@ function AddCallLog() {
 
               {/* Collapsible Section for Service Types */}
               <div className="form-section">
-                <button
-                  type="button"
-                >
-                  Service Types
-                </button>
-                  <div className="checkbox-group" >
-                    <select name="service_type" value={formData.service_type} onChange={handleInputChange}>
-                      <option value="Breakdown">Breakdown</option>
-                      <option value="PM">PM</option>
-                      <option value="Installation">Installation</option>
-                      <option value="Calibration">Calibration</option>
-                      <option value="Inspection">Inspection</option>
-                    </select>
+                <div className="form-grid">
+
+                  <div className="form-field">
+                  
+                      <b>Service Types</b>
+                    
                   </div>
+                   <div className="form-field">
+                      <div className="checkbox-group" >
+                        <select name="service_type" value={formData.service_type} onChange={handleInputChange}>
+                        <option value="Breakdown">Breakdown</option>
+                        <option value="PM">PM</option>
+                        <option value="Installation">Installation</option>
+                        <option value="Calibration">Calibration</option>
+                        <option value="Inspection">Inspection</option>
+                        </select>
+                        </div>
+                  </div>
+                     
+                </div>
+                <div className="form-grid">
+                      
+                </div>
+                 
               </div>
             </>
           )}
@@ -407,7 +467,6 @@ function AddCallLog() {
           
             </div>
           </>
-        )}
       </div>
     </Layout>
   );

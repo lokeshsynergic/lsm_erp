@@ -7,7 +7,7 @@ export const getCalllog = (data) => {
 export const saveCalllog = (data, id) => {
   if (id) {
     // UPDATE existing call log (PUT /crm/call-log/4)
-    return apiRequest("PUT", `/crm/call-log/${id}`, data);
+    return apiRequest("POST", `/crm/call-log/${id}`, data);
   } else {
     // CREATE new call log (POST /crm/call-log)
     return apiRequest("POST", "/crm/call-log", data);

@@ -43,12 +43,15 @@ export class ServiceCallService {
   /**
    * Get all service calls
    */
-  async findAll(): Promise<ServiceCall[]> {
-    return await this.serviceCallRepository.find({
-      order: {
-        id: 'DESC',
-      },
-    });
+    async findAll(): Promise<ServiceCall[]> {
+    return await this.serviceCallRepository
+      .createQueryBuilder('service_call')
+      .leftJoin('md_hrms_employee', 'engineer', 'service_call.engineer = engineer.emp_code')
+      .addSelect(
+        `CONCAT_WS(' ', engineer.first_name, engineer.middle_name, engineer.last_name)`,
+        'service_call_engineer_name'
+      )
+      .getMany();
   }
 
   /**

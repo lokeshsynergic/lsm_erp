@@ -8,6 +8,7 @@ function CrmRoutes() {
       <Route path="/" element={<CallLog />} />
       <Route path="/call-log" element={<CallLog />} />
       <Route path="/call-log/add" element={<AddCallLog />} />
+      <Route path="/call-log/edit/:id" element={<AddCallLog />} />
     </Routes>
   );
 }

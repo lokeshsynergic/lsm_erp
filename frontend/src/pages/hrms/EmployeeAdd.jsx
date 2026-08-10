@@ -1,7 +1,8 @@
 import { useState ,useEffect} from "react";
 import Layout from "../../components/Layout";
 import "../../styles/employeeAdd.css";
-import { saveEmployee, getEmployeeById,uploadDocuments } from "../../services/hrms/employeeService";
+import { saveEmployee, getEmployeeById,uploadDocuments,getEmployeeDocuments } from "../../services/hrms/employeeService";
+import { getDepartment, getDesignation, getCategory,getDocument } from "../../services/hrms/masterService";
 import { useNavigate, useParams } from "react-router-dom";
 
 
@@ -19,6 +20,15 @@ function EmployeeAdd() {
   const [showUserDetails, setShowUserDetails] = useState(true);
   const navigate = useNavigate();
   const { id } = useParams();
+
+  // --- Master Data Lists ---
+  const [departments, setDepartments] = useState([]);
+  const [designations, setDesignations] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [documentTypes, setDocumentTypes] = useState([]);
+
+  // --- Documents State ---
+  const [documents, setDocuments] = useState([]);
 
   // --- Personal Tab State ---
   const [empCode, setEmpCode] = useState("");
@@ -137,6 +147,28 @@ function EmployeeAdd() {
     }
   }, [id]);
 
+  // Fetch master data (departments, designations, categories)
+  useEffect(() => {
+    const fetchMasterData = async () => {
+      try {
+        const deptData = await getDepartment();
+        setDepartments(Array.isArray(deptData) ? deptData : []);
+        
+        const desigData = await getDesignation();
+        setDesignations(Array.isArray(desigData) ? desigData : []);
+        
+        const catData = await getCategory();
+        setCategories(Array.isArray(catData) ? catData : []);
+
+        const docData = await getDocument();
+        setDocumentTypes(Array.isArray(docData) ? docData : []);
+      } catch (err) {
+        console.error("Error fetching master data:", err);
+      }
+    };
+    fetchMasterData();
+  }, []);
+
   // Calculate retirement date (60 years from date of birth)
   useEffect(() => {
     if (dateOfBirth) {
@@ -185,6 +217,12 @@ function EmployeeAdd() {
         setBankAccountNo(data.bankAccountNo || "");
         setIfscCode(data.ifscCode || "");
         setCtc(data.ctc || "");
+      }
+      if (id) {
+        const docs = await getEmployeeDocuments(data.empCode);
+        if (docs) {
+          setDocuments(Array.isArray(docs) ? docs : []);
+        }
       }
     } catch (error) {
       console.error("Failed to load employee details:", error);
@@ -441,15 +479,16 @@ function EmployeeAdd() {
                  <div className="form-field">
                   <label>Department</label>
                   <select 
-                    name="dept_id"
+                    name="dept_id" required
                     value={deptId}
                     onChange={(e) => setDeptId(e.target.value)}
                   >
                     <option value="">Select Department</option>
-                    <option value="1">Department 1</option>
-                    <option value="2">Department 2</option>
-                    <option value="3">Department 3</option>
-                    <option value="4">Department 4</option>
+                    {departments.map((dept) => (
+                      <option key={dept.id} value={dept.dept_id}>
+                        {dept.department_name}
+                      </option>
+                    ))}
                   </select>
                 </div>
 
@@ -461,10 +500,11 @@ function EmployeeAdd() {
                     onChange={(e) => setDesigId(e.target.value)}
                   >
                     <option value="">Select Designation</option>
-                    <option value="1">Designation 1</option>
-                    <option value="2">Designation 2</option>
-                    <option value="3">Designation 3</option>
-                    <option value="4">Designation 4</option>
+                    {designations.map((desig) => (
+                      <option key={desig.desig_id} value={desig.desig_id}>
+                        {desig.designation_name}
+                      </option>
+                    ))}
                   </select>
                 </div>
 
@@ -476,10 +516,11 @@ function EmployeeAdd() {
                     onChange={(e) => setCatId(e.target.value)}
                   >
                     <option value="">Select Category</option>
-                    <option value="1">Category 1</option>
-                    <option value="2">Category 2</option>
-                    <option value="3">Category 3</option>
-                    <option value="4">Category 4</option>
+                    {categories.map((cat) => (
+                      <option key={cat.cat_id} value={cat.cat_id}>
+                        {cat.category_name}
+                      </option>
+                    ))}
                   </select>
                 </div>
 
@@ -825,8 +866,50 @@ function EmployeeAdd() {
              {activeTab === "Documents" && (
             <div className="edu-expe-wrapper">
            
+              {/* PREVIOUSLY UPLOADED DOCUMENTS TABLE - Only show in edit mode */}
+              {id && documents.length > 0 && (
+                <div className="form-section">
+                  <h3 className="section-title">Previously Uploaded Documents</h3>
+                  <div className="document-table-wrap">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Document Type</th>
+                          <th>Document ID</th>
+                          <th>Document Link</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {documents.map((doc, index) => (
+                          <tr key={index}>
+                            <td>{doc.documentname || "-"}</td>
+                            <td>{doc.employee_document_no ||  "-"}</td>
+                            <td>
+                              {doc.employee_document_path || doc.doc_path ? (
+                                <a 
+                                  href={doc.employee_document_path || doc.doc_path} 
+                                  target="_blank" 
+                                  rel="noopener noreferrer"
+                                  className="doc-link"
+                                >
+                                  📄 View Document
+                                </a>
+                              ) : (
+                                "-"
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              <hr className="form-divider" />
+              
               <div className="form-section">
-                <h3 className="section-title">Document Details</h3>
+                <h3 className="section-title">Add New Documents</h3>
                 {documentList.map((doc, index) => (
                   <div key={`doc-${index}`} className="dynamic-row grid-3">
                     <div className="form-field">
@@ -837,10 +920,15 @@ function EmployeeAdd() {
                            handleDocChange(index, "documentName", e.target.value)
                          }
                        >
-                         <option value="">Select Document</option>
+                        {documentTypes.map((docType) => (
+                          <option key={docType.doc_id} value={docType.doc_id}>
+                            {docType.document_name}
+                          </option>
+                        ))}
+                         {/* <option value="">Select Document</option>
                          <option value="1">Passport</option>
                          <option value="2">Aadhar</option>
-                         <option value="3">PAN</option>
+                         <option value="3">PAN</option> */}
                        </select>
                       
                     </div>

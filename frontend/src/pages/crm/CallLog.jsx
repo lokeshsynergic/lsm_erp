@@ -70,6 +70,7 @@ function CallLog() {
                   <th>Equipment Name</th>
                   <th>Complaint Reported</th>
                   <th>Engineer</th>
+                  <th>Status</th>
                   <th>Action</th>
                 </tr>
               </thead>
@@ -83,7 +84,9 @@ function CallLog() {
                     <td className="table-cell">{log.mobile || log.mobile_number || "-"}</td>
                     <td className="table-cell">{log.equipmentName || log.equipment_name || "-"}</td>
                     <td className="table-cell">{log.complaintReported || log.complaint_reported || "-"}</td>
-                    <td className="table-cell">{log.engineer || "-"}</td>
+
+                    <td className="table-cell">{log.engineer || log.service_call_engineer_name || "-"}</td>
+                    <td className="table-cell">{log.equipment_status || "-"}</td>
                     <td className="table-cell">
                       <button
                         className="edit-btn"

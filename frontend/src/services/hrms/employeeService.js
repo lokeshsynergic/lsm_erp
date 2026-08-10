@@ -17,6 +17,10 @@ export const uploadDocuments = (empCode, formData) => {
   return apiRequest("POST", `/master/emp/${empCode}/documents`, formData);
 };
 
+export const getEmployeeDocuments = (empCode) => {
+  return apiRequest("GET", `/master/emp/${empCode}/documents`);
+};
+
 export const getEmployeeById = (id) => {
-  return apiRequest("GET", `/master/emp/${id}`);
+  return apiRequest("GET", `/master/emp/id/${id}`);
 };

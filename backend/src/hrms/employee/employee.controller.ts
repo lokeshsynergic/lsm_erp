@@ -48,12 +48,39 @@ export class EmployeeController {
       body,
     );
   }
-
+  
   @Get()
   async findAll(): Promise<Employee[]> {
     return await this.employeeService.findAll();
   }
 
+  /**
+   * Get employee by ID
+   * GET /master/emp/id/:id
+   */
+  @Get('id/:id')
+  async findOne(@Param('id') id: string): Promise<Employee> {
+    return await this.employeeService.findOne(+id);
+  }
+
+  /**
+   * Get employee by emp code
+   * GET /master/emp/code/:empCode
+   */
+  @Get('code/:empCode')
+  async findByEmpCode(@Param('empCode') empCode: string): Promise<Employee> {
+    return await this.employeeService.findByEmpCode(empCode);
+  }
+
+  /**
+   * Get employee documents
+   * GET /master/emp/:empCode/documents
+   */
+  @Get(':empCode/documents')
+  async getempDocuments(@Param('empCode') empCode: string): Promise<any[]> {
+    return await this.employeeService.getempDocuments(empCode);
+  }
+   
   /**
    * Get active employees
    * GET /employee/active
@@ -61,18 +88,6 @@ export class EmployeeController {
   @Get('active')
   async getActiveEmployees(): Promise<Employee[]> {
     return await this.employeeService.getActiveEmployees();
-  }
-
-  
-  @Get(':id')
-  async findOne(@Param('id') id: string): Promise<Employee> {
-    return await this.employeeService.findOne(+id);
-  }
-
-  
-  @Get('code/:empCode')
-  async findByEmpCode(@Param('empCode') empCode: string): Promise<Employee> {
-    return await this.employeeService.findByEmpCode(empCode);
   }
 
 
