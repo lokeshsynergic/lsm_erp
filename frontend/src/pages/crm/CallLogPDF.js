@@ -1,11 +1,11 @@
 import React from "react";
 import { Page, Text, View, Document, StyleSheet } from "@react-pdf/renderer";
 
-// Styles designed with deep contrast & enhanced typography for PDF print
+// Styles for compact document layout
 const styles = StyleSheet.create({
   page: {
     padding: 30,
-    backgroundColor: "#F8FAFC", // Slate soft contrast background
+    backgroundColor: "#FFFFFF",
     fontFamily: "Helvetica",
   },
   headerContainer: {
@@ -13,20 +13,14 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     borderBottomWidth: 2,
-    borderBottomColor: "#1E293B", // Deep navy accent
-    paddingBottom: 10,
-    marginBottom: 20,
-  },
-  breadcrumb: {
-    fontSize: 9,
-    color: "#64748B",
-    marginBottom: 4,
-    textTransform: "uppercase",
+    borderBottomColor: "#1E293B",
+    paddingBottom: 8,
+    marginBottom: 6, // Reduced from 5
   },
   title: {
     fontSize: 22,
     fontWeight: "bold",
-    color: "#0F172A", // Deep primary text
+    color: "#0F172A",
   },
   badge: {
     backgroundColor: "#FEF3C7",
@@ -37,48 +31,38 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     fontWeight: "bold",
   },
-  sectionCard: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 6,
-    padding: 14,
-    marginBottom: 14,
-    borderWidth: 1,
-    borderColor: "#CBD5E1", // High contrast border
-  },
   sectionTitle: {
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: "bold",
     color: "#1E293B",
+    marginTop: 2, // 👈 Force header directly against the element above
+    marginBottom: 4, // 👈 Reduce gap below header title
     borderBottomWidth: 1,
     borderBottomColor: "#E2E8F0",
-    paddingBottom: 6,
-    marginBottom: 10,
+    paddingBottom: 4,
+    marginBottom: 6, // 👈 Reduce gap below header title
   },
   grid: {
     flexDirection: "row",
     flexWrap: "wrap",
     marginHorizontal: -5,
+    marginBottom: 5,
   },
   col3: {
     width: "33.33%",
     paddingHorizontal: 5,
-    marginBottom: 10,
-  },
-  col2: {
-    width: "50%",
-    paddingHorizontal: 5,
-    marginBottom: 10,
+    marginBottom: 8, // Reduced from 10 to tighten field rows
   },
   col1: {
     width: "100%",
     paddingHorizontal: 5,
-    marginBottom: 10,
+    marginBottom: 8, // Reduced from 10
   },
   label: {
     fontSize: 8,
     fontWeight: "bold",
-    color: "#334155", // Deep slate for labels
-    marginBottom: 4,
+    color: "#334155",
+    marginBottom: 2, // Reduced from 4
     textTransform: "uppercase",
   },
   required: {
@@ -87,10 +71,10 @@ const styles = StyleSheet.create({
   valueBox: {
     backgroundColor: "#F1F5F9",
     borderWidth: 1,
-    borderColor: "#94A3B8", // High-contrast input borders
+    borderColor: "#94A3B8",
     borderRadius: 4,
-    padding: 6,
-    minHeight: 22,
+    padding: 5,
+    minHeight: 20, // Reduced from 22
   },
   valueText: {
     fontSize: 9,
@@ -101,42 +85,47 @@ const styles = StyleSheet.create({
     color: "#64748B",
     fontStyle: "italic",
   },
-  checkboxContainer: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 12,
-    marginTop: 4,
-  },
-  checkboxItem: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  checkboxSquare: {
-    width: 10,
-    height: 10,
+  largeValueBox: {
+    backgroundColor: "#F1F5F9",
     borderWidth: 1,
-    borderColor: "#334155",
-    borderRadius: 2,
-    marginRight: 5,
-    backgroundColor: "#FFFFFF",
+    borderColor: "#94A3B8",
+    borderRadius: 4,
+    padding: 6,
+    minHeight: 70, // 👈 Reduced height to prevent vertical expansion
+    marginBottom: 2, // 👈 Eliminates space below the box
   },
-  checkboxLabel: {
+  largeValueText: {
     fontSize: 9,
-    color: "#1E293B",
+    color: "#0F172A",
+    lineHeight: 1.3,
+  },
+  largePlaceholderText: {
+    fontSize: 9,
+    color: "#64748B",
+    fontStyle: "italic",
+    lineHeight: 1.3,
   },
 });
 
 // Helper component for styled form fields
-const FormField = ({ label, value, placeholder, required, style }) => (
+
+const FormField = ({ label, value, placeholder, style }) => (
   <View style={style}>
-    <Text style={styles.label}>
-      {label} {required && <Text style={styles.required}>*</Text>}
-    </Text>
+    <Text style={styles.label}>{label}</Text>
     <View style={styles.valueBox}>
       <Text style={value ? styles.valueText : styles.placeholderText}>
         {value || placeholder}
       </Text>
     </View>
+  </View>
+);
+
+// Large text box component for notes/write-in fields
+const LargeTextBox = ({ value, placeholder }) => (
+  <View style={styles.largeValueBox}>
+    <Text style={value ? styles.largeValueText : styles.largePlaceholderText}>
+      {value || placeholder}
+    </Text>
   </View>
 );
 
@@ -146,162 +135,119 @@ export const CallLogPDF = ({ formData = {} }) => (
       {/* Header Section */}
       <View style={styles.headerContainer}>
         <View>
-          <Text style={styles.breadcrumb}>CRM › Call Log › New Call Log</Text>
-          <Text style={styles.title}>New Call Log</Text>
+          <Text style={styles.title}>Service Call Log</Text>
         </View>
-        <Text style={styles.badge}>Not Saved</Text>
+        <Text style={styles.badge}>Call # {formData.callNo}</Text>
       </View>
 
-      {/* 1. Call Details */}
-      <View style={styles.sectionCard}>
-        <Text style={styles.sectionTitle}>Call Details</Text>
-        <View style={styles.grid}>
-          <FormField
-            style={styles.col3}
-            label="Call No"
-            required
-            value={formData.callNo}
-            placeholder="Enter call number"
-          />
-          <FormField
-            style={styles.col3}
-            label="Date"
-            required
-            value={formData.date}
-            placeholder="dd/mm/yyyy"
-          />
-          <FormField
-            style={styles.col3}
-            label="Hospital / Customer"
-            required
-            value={formData.hospital}
-            placeholder="Enter hospital name"
-          />
-          <FormField
-            style={styles.col3}
-            label="Department"
-            value={formData.department}
-            placeholder="Enter department"
-          />
-          <FormField
-            style={styles.col3}
-            label="Contact Person"
-            value={formData.contactPerson}
-            placeholder="Enter contact person"
-          />
-          <FormField
-            style={styles.col3}
-            label="Mobile"
-            value={formData.mobile}
-            placeholder="Enter mobile number"
-          />
-          <FormField
-            style={styles.col3}
-            label="Engineer"
-            value={formData.engineer}
-            placeholder="Enter engineer name"
-          />
-        </View>
-      </View>
-
-      {/* 2. Equipment Details */}
-      <View style={styles.sectionCard}>
-        <Text style={styles.sectionTitle}>Equipment Details</Text>
-        <View style={styles.grid}>
-          <FormField
-            style={styles.col3}
-            label="Equipment Name"
-            value={formData.equipmentName}
-            placeholder="Enter equipment name"
-          />
-          <FormField
-            style={styles.col3}
-            label="Make"
-            value={formData.make}
-            placeholder="Enter make"
-          />
-          <FormField
-            style={styles.col3}
-            label="Model"
-            value={formData.model}
-            placeholder="Enter model"
-          />
-          <FormField
-            style={styles.col3}
-            label="Serial No"
-            value={formData.serialNo}
-            placeholder="Enter serial number"
-          />
-          <FormField
-            style={styles.col3}
-            label="Asset ID"
-            value={formData.assetId}
-            placeholder="Enter asset ID"
-          />
-        </View>
-      </View>
-
-      {/* 3. Service Details & Service Types */}
-      <View style={styles.sectionCard}>
-        <Text style={styles.sectionTitle}>Service Details</Text>
-        <View style={styles.grid}>
-          <FormField
-            style={styles.col1}
-            label="Complaint Reported"
-            value={formData.complaintReported}
-            placeholder="Enter complaint details"
-          />
-        </View>
-
-        <Text style={[styles.label, { marginTop: 6 }]}>Service Types</Text>
-        <View style={styles.checkboxContainer}>
-          {["Breakdown", "PM", "Installation", "Calibration", "Inspection"].map(
-            (type) => (
-              <View key={type} style={styles.checkboxItem}>
-                <View style={styles.checkboxSquare} />
-                <Text style={styles.checkboxLabel}>{type}</Text>
-              </View>
-            ),
-          )}
-        </View>
-      </View>
-
-      {/* 4. Action Taken */}
-      <View style={styles.sectionCard}>
-        <Text style={styles.sectionTitle}>Action Taken</Text>
+      {/* Call Details Section */}
+      <Text style={styles.sectionTitle}>Call Details</Text>
+      <View style={styles.grid}>
         <FormField
-          style={styles.col1}
-          label="Action Details"
-          value={formData.actionTaken}
-          placeholder="Enter action taken"
+          style={styles.col3}
+          label="Call No"
+          value={formData.callNo}
+          placeholder="-"
+        />
+        <FormField
+          style={styles.col3}
+          label="Date"
+          value={formData.date}
+          placeholder="-"
+        />
+        <FormField
+          style={styles.col3}
+          label="Hospital / Customer"
+          value={formData.hospital}
+          placeholder="-"
+        />
+        <FormField
+          style={styles.col3}
+          label="Department"
+          value={formData.department}
+          placeholder="-"
+        />
+        <FormField
+          style={styles.col3}
+          label="Contact Person"
+          value={formData.contactPerson}
+          placeholder="-"
+        />
+        <FormField
+          style={styles.col3}
+          label="Mobile"
+          value={formData.mobile}
+          placeholder="-"
+        />
+        <FormField
+          style={styles.col3}
+          label="Engineer"
+          value={formData.engineer}
+          placeholder="-"
+        />
+        <FormField
+          style={styles.col3}
+          label=" Status"
+          value={formData.status}
+          placeholder="-"
         />
       </View>
 
-      {/* 5. Spare Parts Used */}
-      <View style={styles.sectionCard}>
-        <Text style={styles.sectionTitle}>Spare Parts Used</Text>
+      {/* Equipment Details Section */}
+      <Text style={styles.sectionTitle}>Equipment Details</Text>
+      <View style={styles.grid}>
         <FormField
-          style={styles.col1}
-          label="Spare Parts Details"
-          value={formData.spareParts}
-          placeholder="Enter spare parts details"
+          style={styles.col3}
+          label="Equipment Name"
+          value={formData.equipmentName}
+          placeholder="-"
+        />
+        <FormField
+          style={styles.col3}
+          label="Make"
+          value={formData.make}
+          placeholder="-"
+        />
+        <FormField
+          style={styles.col3}
+          label="Model"
+          value={formData.model}
+          placeholder="-"
+        />
+        <FormField
+          style={styles.col3}
+          label="Serial No"
+          value={formData.serialNo}
+          placeholder="-"
+        />
+        <FormField
+          style={styles.col3}
+          label="Asset ID"
+          value={formData.assetId}
+          placeholder="-"
         />
       </View>
 
-      {/* 6. Equipment Status */}
-      <View style={styles.sectionCard}>
-        <Text style={styles.sectionTitle}>Equipment Status</Text>
-        <View style={styles.checkboxContainer}>
-          {["Breakdown", "PM", "Installation", "Calibration", "Inspection"].map(
-            (type) => (
-              <View key={type} style={styles.checkboxItem}>
-                <View style={styles.checkboxSquare} />
-                <Text style={styles.checkboxLabel}>{type}</Text>
-              </View>
-            ),
-          )}
-        </View>
-      </View>
+      {/* Complaint Reported */}
+      <Text style={styles.sectionTitle}>Complaint Reported</Text>
+      <LargeTextBox
+        value={formData.complaintReported}
+        placeholder="Describe the complaint / issue reported by customer"
+      />
+
+      {/* Action Taken */}
+      <Text style={styles.sectionTitle}>Action Taken</Text>
+      <LargeTextBox
+        value={formData.actionTaken}
+        placeholder="Document the actions taken to resolve the issue"
+      />
+
+      {/* Spare Parts Details */}
+      <Text style={styles.sectionTitle}>Spare Parts Used</Text>
+      <LargeTextBox
+        value={formData.spareParts}
+        placeholder="List all spare parts, part numbers, and quantities"
+      />
     </Page>
   </Document>
 );

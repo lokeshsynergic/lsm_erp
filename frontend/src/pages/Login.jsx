@@ -56,8 +56,8 @@ function Login() {
         {/* Logo Section */}
         <div className="login-header">
           <img src={logoImage} alt="LSM Logo" className="login-logo" />
-          <h1 className="login-title">LSM ERP</h1>
-          <p className="login-subtitle">Enterprise Resource Planning</p>
+          <h1 className="login-title">LSM IBMS</h1>
+          <p className="login-subtitle">Integrated Business Management System</p>
         </div>
 
         {/* Login Form */}

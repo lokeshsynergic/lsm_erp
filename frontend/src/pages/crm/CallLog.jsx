@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, NavLink } from "react-router-dom";
+import { pdf } from '@react-pdf/renderer';
 import Layout from "../../components/Layout";
 import "../../styles/department.css";
 import "../../styles/main.css";
 import { getCalllog } from "../../services/crm/call_log";
+import { CallLogPDF } from "./CallLogPDF";
 
 function CallLog() {
   const navigate = useNavigate();
@@ -34,12 +36,51 @@ function CallLog() {
     navigate(`/crm/call-log/edit/${id}`);
   };
 
-  const handleDelete = (id) => {
-    if (window.confirm("Are you sure you want to delete this call log?")) {
-      // Add delete functionality here
-      console.log("Delete call log:", id);
+  const handlePrint = async (log) => {
+    try {
+      // Format data for PDF
+      const formattedData = {
+        callNo: log.call_no,
+        date: log.date || new Date().toLocaleDateString(),
+        hospital: log.customer || log.customer_name,
+        department: log.department,
+        contactPerson: log.contactPerson || log.contact_person,
+        mobile: log.mobile || log.mobile_number,
+        engineer: log.engineer || log.service_call_engineer_name,
+        equipmentName: log.equipmentName || log.equipment_name,
+        make: log.make,
+        model: log.model,
+        serialNo: log.serial_no || log.serialNo,
+        assetId: log.asset_id || log.assetId,
+        complaintReported: log.complaintReported || log.complaint_reported,
+        actionTaken: log.action_taken || log.actionTaken,
+        spareParts: log.spare_parts || log.spareParts,
+        status: log.equipment_status,
+      };
+
+      // Generate PDF blob
+      const pdfBlob = await pdf(
+        <CallLogPDF formData={formattedData} />
+      ).toBlob();
+
+      // Create URL from blob and open in new window
+      const pdfUrl = URL.createObjectURL(pdfBlob);
+      window.open(pdfUrl, '_blank');
+
+      // Clean up the URL after opening
+      setTimeout(() => URL.revokeObjectURL(pdfUrl), 100);
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+      alert("Error generating PDF. Please try again.");
     }
   };
+
+  // const handleDelete = (id) => {
+  //   if (window.confirm("Are you sure you want to delete this call log?")) {
+  //     // Add delete functionality here
+  //     console.log("Delete call log:", id);
+  //   }
+  // };
 
   return (
     <Layout>
@@ -96,11 +137,17 @@ function CallLog() {
                         {log.equipment_status || "-"}
                       </span>
                     </td>
-                    <td className="table-cell">
+                    <td className="table-cell action-buttons">
                       <button
                         className="edit-btn"
                         onClick={() => handleEdit(log.id)}
                         title="Edit"
+                      >
+                      </button>
+                      <button
+                        className="print-btn"
+                        onClick={() => handlePrint(log)}
+                        title="Print"
                       >
                       </button>
                     </td>
@@ -118,8 +165,5 @@ function CallLog() {
     </Layout>
   );
 }
-
-
-
 
 export default CallLog;

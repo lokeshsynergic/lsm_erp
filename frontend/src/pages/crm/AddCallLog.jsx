@@ -3,7 +3,7 @@ import Layout from "../../components/Layout";
 import { useNavigate, useParams } from "react-router-dom";
 import "../../styles/employeeAdd.css"; 
 import { PDFDownloadLink } from '@react-pdf/renderer';
-import { CallLogPDF } from './CallLogPDF';
+
 import { saveCalllog, getCalllogById } from "../../services/crm/call_log";
 import { getEmployee } from "../../services/hrms/employeeService";
 
