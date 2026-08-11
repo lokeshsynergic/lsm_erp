@@ -64,6 +64,7 @@ function CallLog() {
               <thead>
                 <tr>
                   <th>SL No</th>
+                  <th>Call No</th>
                   <th>Customer Name</th>
                   <th>Contact Person</th>
                   <th>Mobile</th>
@@ -79,6 +80,7 @@ function CallLog() {
                 {callLogs.map((log, index) => (
                   <tr key={log.id || index}>
                     <td className="table-cell">{index + 1}</td>
+                    <td className="table-cell">{log.call_no || "-"}</td>
                     <td className="table-cell">{log.customer || log.customer_name || "-"}</td>
                     <td className="table-cell">{log.contactPerson || log.contact_person || "-"}</td>
                     <td className="table-cell">{log.mobile || log.mobile_number || "-"}</td>
@@ -86,7 +88,14 @@ function CallLog() {
                     <td className="table-cell">{log.complaintReported || log.complaint_reported || "-"}</td>
 
                     <td className="table-cell">{log.engineer || log.service_call_engineer_name || "-"}</td>
-                    <td className="table-cell">{log.equipment_status || "-"}</td>
+                    <td className="table-cell">
+                      <span className={`status-badge ${
+                        log.equipment_status === 'Close' ? 'close' :
+                        log.equipment_status === 'Open' ? 'open' : 'other'
+                      }`}>
+                        {log.equipment_status || "-"}
+                      </span>
+                    </td>
                     <td className="table-cell">
                       <button
                         className="edit-btn"

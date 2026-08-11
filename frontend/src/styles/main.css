@@ -78,6 +78,21 @@ table tbody td {
   color: #6b6b6b;
 }
 
+.status-badge.close {
+  background: #e6f7ec;
+  color: #1c8a45;
+}
+
+.status-badge.open {
+  background: #fce4e4;
+  color: #d32f2f;
+}
+
+.status-badge.other {
+  background: #fff3cd;
+  color: #856404;
+}
+
 /* Filter Section */
 .filter-section {
   padding: 16px 0;

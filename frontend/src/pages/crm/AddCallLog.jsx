@@ -226,6 +226,15 @@ function AddCallLog() {
           {/* Tab 1: Call Details */}
           {activeTab === "Call Details" && (
             <div className="form-grid">
+              {id && (
+              <div className="form-field">
+                <label>
+                  Call Log No
+                </label>
+                <p><b>{formData.call_no}</b></p>
+              
+              </div>
+              )}
               <div className="form-field">
                 <label>
                   Hospital / Customer <span className="required">*</span>
