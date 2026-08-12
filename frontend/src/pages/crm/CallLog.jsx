@@ -10,12 +10,82 @@ import { CallLogPDF } from "./CallLogPDF";
 function CallLog() {
   const navigate = useNavigate();
   const [callLogs, setCallLogs] = useState([]);
+  const [filteredLogs, setFilteredLogs] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  // Search and Filter States
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterStatus, setFilterStatus] = useState("all");
+  const [filterEquipment, setFilterEquipment] = useState("all");
+  const [sortBy, setSortBy] = useState("call_no");
+  const [sortOrder, setSortOrder] = useState("asc");
+
+  // Extract unique equipment names and statuses
+  const equipmentNames = ["all", ...new Set(callLogs.map((log) => log.equipment_name || log.equipmentName).filter(Boolean))];
+  const statuses = ["all", ...new Set(callLogs.map((log) => log.equipment_status).filter(Boolean))];
 
   useEffect(() => {
     loadCallLogs();
   }, []);
+
+  // Apply filters and sorting
+  useEffect(() => {
+    let filtered = [...callLogs];
+
+    // Search filter (search in call_no, customer, contact person, mobile)
+    if (searchTerm) {
+      filtered = filtered.filter(
+        (log) =>
+          log.call_no?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          (log.customer || log.customer_name)?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          (log.contactPerson || log.contact_person)?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          (log.mobile || log.mobile_number)?.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    // Status filter
+    if (filterStatus !== "all") {
+      filtered = filtered.filter((log) => log.equipment_status === filterStatus);
+    }
+
+    // Equipment filter
+    if (filterEquipment !== "all") {
+      filtered = filtered.filter(
+        (log) => (log.equipment_name || log.equipmentName) === filterEquipment
+      );
+    }
+
+    // Sorting
+    filtered.sort((a, b) => {
+      let compareA, compareB;
+
+      switch (sortBy) {
+        case "call_no":
+          compareA = a.call_no?.toLowerCase() || "";
+          compareB = b.call_no?.toLowerCase() || "";
+          break;
+        case "customer":
+          compareA = (a.customer || a.customer_name)?.toLowerCase() || "";
+          compareB = (b.customer || b.customer_name)?.toLowerCase() || "";
+          break;
+        case "status":
+          compareA = a.equipment_status?.toLowerCase() || "";
+          compareB = b.equipment_status?.toLowerCase() || "";
+          break;
+        default:
+          return 0;
+      }
+
+      if (sortOrder === "asc") {
+        return compareA < compareB ? -1 : compareA > compareB ? 1 : 0;
+      } else {
+        return compareA > compareB ? -1 : compareA < compareB ? 1 : 0;
+      }
+    });
+
+    setFilteredLogs(filtered);
+  }, [callLogs, searchTerm, filterStatus, filterEquipment, sortBy, sortOrder]);
 
   const loadCallLogs = async () => {
     try {
@@ -99,7 +169,83 @@ function CallLog() {
         {loading && <p>Loading...</p>}
         {error && <p style={{ color: "red", padding: "12px" }}>Error: {error}</p>}
 
-        {!loading && callLogs.length > 0 && (
+        {/* Search and Filter Section */}
+        <div className="filter-section">
+          <div className="search-box">
+            <input
+              type="text"
+              placeholder="Search by call no, customer, contact, mobile..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="search-input"
+            />
+          </div>
+
+          <div className="filter-controls">
+            <select
+              value={filterStatus}
+              onChange={(e) => setFilterStatus(e.target.value)}
+              className="filter-select"
+            >
+              <option value="all">All Status</option>
+              <option value="Open">Open</option>
+              <option value="Close">Close</option>
+              <option value="Inprogress">Inprogress</option>
+              <option value="Spareout">Spareout</option>
+              {statuses.map((status) => (
+                status !== "all" && status !== "Open" && status !== "Close" && status !== "Inprogress" && status !== "Spareout" && <option key={status} value={status}>{status}</option>
+              ))}
+            </select>
+
+            <select
+              value={filterEquipment}
+              onChange={(e) => setFilterEquipment(e.target.value)}
+              className="filter-select"
+            >
+              <option value="all">All Equipment</option>
+              {equipmentNames.map((equipment) => (
+                equipment !== "all" && <option key={equipment} value={equipment}>{equipment}</option>
+              ))}
+            </select>
+
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="filter-select"
+            >
+              <option value="call_no">Sort by Call No</option>
+              <option value="customer">Sort by Customer</option>
+              <option value="status">Sort by Status</option>
+            </select>
+
+            <button
+              className="sort-order-btn"
+              onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
+              title={`Sort ${sortOrder === "asc" ? "Descending" : "Ascending"}`}
+            >
+              {sortOrder === "asc" ? "↑" : "↓"}
+            </button>
+
+            <button
+              className="reset-btn"
+              onClick={() => {
+                setSearchTerm("");
+                setFilterStatus("all");
+                setFilterEquipment("all");
+                setSortBy("call_no");
+                setSortOrder("asc");
+              }}
+            >
+              Reset
+            </button>
+          </div>
+
+          <div className="results-count">
+            Showing {filteredLogs.length} of {callLogs.length} call logs
+          </div>
+        </div>
+
+        {!loading && filteredLogs.length > 0 && (
           <div className="department-list-table-wrap">
             <table>
               <thead>
@@ -118,7 +264,7 @@ function CallLog() {
               </thead>
 
               <tbody>
-                {callLogs.map((log, index) => (
+                {filteredLogs.map((log, index) => (
                   <tr key={log.id || index}>
                     <td className="table-cell">{index + 1}</td>
                     <td className="table-cell">{log.call_no || "-"}</td>
@@ -158,7 +304,7 @@ function CallLog() {
           </div>
         )}
 
-        {!loading && callLogs.length === 0 && !error && (
+        {!loading && filteredLogs.length === 0 && !error && (
           <p style={{ textAlign: "center", padding: "20px" }}>No call logs found</p>
         )}
       </div>

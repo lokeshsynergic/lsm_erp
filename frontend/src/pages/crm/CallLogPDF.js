@@ -1,5 +1,13 @@
 import React from "react";
-import { Page, Text, View, Document, StyleSheet } from "@react-pdf/renderer";
+import {
+  Page,
+  Text,
+  View,
+  Document,
+  StyleSheet,
+  Image,
+} from "@react-pdf/renderer";
+import logo from "../../image/lsm_logo.jpeg";
 
 // Styles for compact document layout
 const styles = StyleSheet.create({
@@ -14,8 +22,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderBottomWidth: 2,
     borderBottomColor: "#1E293B",
-    paddingBottom: 8,
-    marginBottom: 6, // Reduced from 5
+    paddingBottom: 5,
+    marginBottom: 5,
+    gap: 10,
   },
   title: {
     fontSize: 22,
@@ -31,12 +40,16 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     fontWeight: "bold",
   },
+  logo: {
+    width: 50,
+    height: 50,
+    marginRight: 15,
+  },
   sectionTitle: {
     fontSize: 13,
     fontWeight: "bold",
     color: "#1E293B",
     marginTop: 2, // 👈 Force header directly against the element above
-    marginBottom: 4, // 👈 Reduce gap below header title
     borderBottomWidth: 1,
     borderBottomColor: "#E2E8F0",
     paddingBottom: 4,
@@ -134,13 +147,15 @@ export const CallLogPDF = ({ formData = {} }) => (
     <Page size="A4" style={styles.page}>
       {/* Header Section */}
       <View style={styles.headerContainer}>
+        <Image src={logo} style={styles.logo} />
         <View>
-          <Text style={styles.title}>Service Call Log</Text>
+          <Text style={styles.title}>Life Safe Medical</Text>
         </View>
         <Text style={styles.badge}>Call # {formData.callNo}</Text>
       </View>
 
       {/* Call Details Section */}
+
       <Text style={styles.sectionTitle}>Call Details</Text>
       <View style={styles.grid}>
         <FormField
@@ -230,24 +245,15 @@ export const CallLogPDF = ({ formData = {} }) => (
 
       {/* Complaint Reported */}
       <Text style={styles.sectionTitle}>Complaint Reported</Text>
-      <LargeTextBox
-        value={formData.complaintReported}
-        placeholder="Describe the complaint / issue reported by customer"
-      />
+      <LargeTextBox value={formData.complaintReported} placeholder="" />
 
       {/* Action Taken */}
       <Text style={styles.sectionTitle}>Action Taken</Text>
-      <LargeTextBox
-        value={formData.actionTaken}
-        placeholder="Document the actions taken to resolve the issue"
-      />
+      <LargeTextBox value={formData.actionTaken} placeholder="" />
 
       {/* Spare Parts Details */}
       <Text style={styles.sectionTitle}>Spare Parts Used</Text>
-      <LargeTextBox
-        value={formData.spareParts}
-        placeholder="List all spare parts, part numbers, and quantities"
-      />
+      <LargeTextBox value={formData.spareParts} placeholder="" />
     </Page>
   </Document>
 );
