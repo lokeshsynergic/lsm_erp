@@ -24,3 +24,10 @@ export const getEmployeeDocuments = (empCode) => {
 export const getEmployeeById = (id) => {
   return apiRequest("GET", `/master/emp/id/${id}`);
 };
+
+export const getEmployeeQualifications = (empCode) => {
+  return apiRequest("GET", `/master/emp/${empCode}/qualifications`);
+};
+export const getEmployeeExperience = (empCode) => {
+  return apiRequest("GET", `/master/emp/${empCode}/experience`);
+};

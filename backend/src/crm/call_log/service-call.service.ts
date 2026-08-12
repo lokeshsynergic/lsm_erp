@@ -17,13 +17,18 @@ export class ServiceCallService {
    */
   private async generateCallNo(): Promise<string> {
     const year = new Date().getFullYear();
-    const count = await this.serviceCallRepository.count({
-      where: {
-        call_no: `LSM-${year}-%`,
-      },
-    });
+    const prefix = `LSM-${year}-`;
+    
+    // Get all call numbers for this year using raw query
+    const result = await this.serviceCallRepository
+      .createQueryBuilder('service_call')
+      .select('COUNT(service_call.id)', 'count')
+      .where('service_call.call_no LIKE :prefix', { prefix: `${prefix}%` })
+      .getRawOne();
+    
+    const count = result?.count ? parseInt(result.count, 10) : 0;
     const sequenceNo = String(count + 1).padStart(3, '0');
-    return `LSM-${year}-${sequenceNo}`;
+    return `${prefix}${sequenceNo}`;
   }
 
   /**
@@ -32,6 +37,7 @@ export class ServiceCallService {
   async create(createServiceCallDto: CreateServiceCallDto): Promise<ServiceCall> {
     const call_no = await this.generateCallNo();
     const call_date = createServiceCallDto.call_date || new Date();
+    
     const serviceCall = this.serviceCallRepository.create({
       ...createServiceCallDto,
       call_no,

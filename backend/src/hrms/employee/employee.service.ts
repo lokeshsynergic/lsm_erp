@@ -178,6 +178,42 @@ export class EmployeeService {
       .getRawMany();
   }
 
+  /**
+   * Get employee qualifications/education records
+   */
+  async getEmployeeQualifications(empCode: string) {
+    return await this.dataSource
+      .createQueryBuilder()
+      .select([
+        'emp_edu.emp_code as empCode',
+        'emp_edu.degree_name as degreeName',
+        'emp_edu.institute_university as instituteUniversity',
+        'emp_edu.year_pass as yearOfPassing',
+        'emp_edu.created_at as createdAt',
+      ])
+      .from('md_hrms_employee_edu', 'emp_edu')
+      .where('emp_edu.emp_code = :empCode', { empCode })
+      .orderBy('emp_edu.created_at', 'DESC')
+      .getRawMany();
+  }
+
+  async getEmployeeExperience(empCode: string) {
+    return await this.dataSource
+      .createQueryBuilder()
+      .select([
+        'emp_expe.emp_code as empCode',
+        'emp_expe.org_name as organization',
+        'emp_expe.desig_name as designation',
+        'emp_expe.from_dt as fromDate',
+        'emp_expe.to_dt as toDate',
+        'emp_expe.created_at as createdAt',
+      ])
+      .from('md_hrms_employee_expe', 'emp_expe')
+      .where('emp_expe.emp_code = :empCode', { empCode })
+      .orderBy('emp_expe.created_at', 'DESC')
+      .getRawMany();
+  }
+
 
 
     async findAll() {
@@ -228,14 +264,34 @@ export class EmployeeService {
     updateEmployeeDto: UpdateEmployeeDto,
   ): Promise<Employee> {
     const employee = await this.findOne(id);
-    
+    const { education, experience, ...employeeData } = updateEmployeeDto;
     const updatedEmployee = {
       ...employee,
-      ...updateEmployeeDto,
-      modifiedAt: new Date(),
+      ...employeeData,
+      updatedAt: new Date(),
     };
 
-    return await this.employeeRepository.save(updatedEmployee);
+    const savedEmployee = await this.employeeRepository.save(updatedEmployee);
+
+    // Ensure empCode exists before inserting related records
+    if (!savedEmployee.empCode) {
+      throw new BadRequestException('Employee code is required');
+    }
+
+    // Insert education records if provided
+    if (education && education.length > 0) {
+      await this.insertEducationRecords(savedEmployee.empCode, education);
+    }
+
+    // Insert experience records if provided
+    if (experience && experience.length > 0) {
+      const validExperience = experience.filter((exp) => exp.fromDate && exp.toDate);
+      if (validExperience.length > 0) {
+        await this.insertExperienceRecords(savedEmployee.empCode, validExperience);
+      }
+    }
+
+    return savedEmployee;
   }
 
   /**

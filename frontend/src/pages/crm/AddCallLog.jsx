@@ -34,7 +34,9 @@ function AddCallLog() {
     department: "",
     contact_person: "",
     mobile: "",
+    service_provider_type: "OWN",
     engineer: "",
+    vendor_name: "",
     equipment_name: "",
     make: "",
     model: "",
@@ -45,6 +47,8 @@ function AddCallLog() {
     action_taken: "",
     spare_parts: "",
     equipment_status: "",
+    coverage_mode: "",
+    priority: "",
   });
 
   // Fetch employees for dropdown
@@ -273,29 +277,21 @@ function AddCallLog() {
               <div className="form-field">
                 <label>Mobile</label>
                 <input
-                  type="tel"
+                  type="number"
                   name="mobile"
                   value={formData.mobile}
+                  maxLength={10}
+                  onInput={(e) => {
+                    if (e.target.value.length > 10) {
+                      e.target.value = e.target.value.slice(0, 10);
+                    }
+                  }}
                   onChange={handleInputChange}
                   placeholder="Enter mobile number"
                 />
               </div>
 
-              <div className="form-field">
-                <label>Engineer</label>
-                <select
-                  name="engineer" required
-                  value={formData.engineer}
-                  onChange={handleInputChange}
-                >
-                  <option value="">-- Select Engineer --</option>
-                  {employees.map((emp) => (
-                    <option key={emp.emp_code} value={emp.emp_code}>
-                      {emp.emp_name} ({emp.emp_code})
-                    </option>
-                  ))}
-                </select>
-              </div>
+              
               <div className="form-field">
                 <label>Equipment Status</label>
                 <select
@@ -308,6 +304,93 @@ function AddCallLog() {
                   <option value="Inprogress">Inprogress</option>
                   <option value="Spareout">Spare Out</option>
                   <option value="Close">Close</option>
+                </select>
+              </div>
+
+              <div className="form-field">
+                <label>Coverage Mode</label>
+                <select
+                  name="coverage_mode" required
+                  value={formData.coverage_mode}
+                  onChange={handleInputChange}
+                >
+                  <option value="">-- Select Coverage Mode --</option>
+                  <option value="Warranty">Warranty</option>
+                  <option value="AMC">AMC</option>
+                  <option value="CMC">CMC</option>
+                  <option value="Out of Coverage">Out of Coverage</option>
+                </select>
+              </div>
+
+              <div className="form-field">
+                <label>Service Provider Type <span className="required">*</span></label>
+                <div style={{ display: "flex", gap: "20px", marginTop: "8px" }}>
+                  <label style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                    <input
+                      type="radio"
+                      name="service_provider_type"
+                      value="OWN"
+                      checked={formData.service_provider_type === "OWN"}
+                      onChange={handleInputChange}
+                    />
+                    Own Engineer
+                  </label>
+                  <label style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                    <input
+                      type="radio"
+                      name="service_provider_type"
+                      value="VENDOR"
+                      checked={formData.service_provider_type === "VENDOR"}
+                      onChange={handleInputChange}
+                    />
+                    Vendor
+                  </label>
+                </div>
+              </div>
+
+              {formData.service_provider_type === "OWN" && (
+                <div className="form-field">
+                  <label>Engineer <span className="required">*</span></label>
+                  <select
+                    name="engineer" required
+                    value={formData.engineer}
+                    onChange={handleInputChange}
+                  >
+                    <option value="">-- Select Engineer --</option>
+                    {employees.map((emp) => (
+                      <option key={emp.emp_code} value={emp.emp_code}>
+                        {emp.emp_name} ({emp.emp_code})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              {formData.service_provider_type === "VENDOR" && (
+                <div className="form-field">
+                  <label>Vendor Name <span className="required">*</span></label>
+                  <input
+                    type="text"
+                    name="vendor_name"
+                    value={formData.vendor_name}
+                    onChange={handleInputChange}
+                    placeholder="Enter vendor name"
+                  />
+                </div>
+              )}
+
+              <div className="form-field">
+                <label>Priority</label>
+                <select
+                  name="priority" required
+                  value={formData.priority}
+                  onChange={handleInputChange}
+                >
+                  <option value="">-- Select Priority --</option>
+                  <option value="LOW">Low</option>
+                  <option value="MEDIUM">Medium</option>
+                  <option value="HIGH">High</option>
+                  <option value="CRITICAL">Critical</option>
                 </select>
               </div>
             </div>

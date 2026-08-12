@@ -1,7 +1,7 @@
 import { useState ,useEffect} from "react";
 import Layout from "../../components/Layout";
 import "../../styles/employeeAdd.css";
-import { saveEmployee, getEmployeeById,uploadDocuments,getEmployeeDocuments } from "../../services/hrms/employeeService";
+import { saveEmployee, getEmployeeById, uploadDocuments, getEmployeeDocuments, getEmployeeQualifications,getEmployeeExperience } from "../../services/hrms/employeeService";
 import { getDepartment, getDesignation, getCategory,getDocument } from "../../services/hrms/masterService";
 import { useNavigate, useParams } from "react-router-dom";
 
@@ -11,7 +11,8 @@ const tabs = [
   "Joining",
   "Address & Contacts",
   "Salary",
-  "EDU/EXPE",
+  "Qualifications",
+  "Experience",
   "Documents",
 ];
 
@@ -29,6 +30,9 @@ function EmployeeAdd() {
 
   // --- Documents State ---
   const [documents, setDocuments] = useState([]);
+
+  // --- Qualifications State ---
+  const [qualifications, setQualifications] = useState([]);
 
   // --- Personal Tab State ---
   const [empCode, setEmpCode] = useState("");
@@ -223,6 +227,17 @@ function EmployeeAdd() {
         if (docs) {
           setDocuments(Array.isArray(docs) ? docs : []);
         }
+        const quals = await getEmployeeQualifications(data.empCode);
+        if (quals) {
+          setQualifications(Array.isArray(quals) ? quals : []);
+        }
+        const expe = await getEmployeeExperience(data.empCode);
+        if (expe && expe.length > 0) {
+          setExperienceList(Array.isArray(expe) ? expe : []);
+        } else {
+          // If no saved experience, keep 1 blank row
+          setExperienceList([{ organization: "", designation: "", fromDate: "", toDate: "" }]);
+        }
       }
     } catch (error) {
       console.error("Failed to load employee details:", error);
@@ -296,6 +311,17 @@ function EmployeeAdd() {
     try {
       const response = await saveEmployee(payload, id);
       console.log("✓ SUCCESS - Employee saved:", response);
+      
+      // Reload qualifications to show newly added ones
+      const newEmpCode = response.empCode || empCode;
+      const updatedQuals = await getEmployeeQualifications(newEmpCode);
+      if (updatedQuals) {
+        setQualifications(Array.isArray(updatedQuals) ? updatedQuals : []);
+      }
+      
+      // Clear education form after successful save
+      setEducationList([{ degree: "", institute: "", yearOfPassing: "" }]);
+      
       // Upload documents if any exist
       const docsWithFiles = documentList.filter((doc) => doc.upload);
       
@@ -610,6 +636,12 @@ function EmployeeAdd() {
                   type="text" 
                   name="mobileNumber" 
                   value={mobileNumber}
+                  maxLength={10}
+                  onInput={(e) => {
+                    if (e.target.value.length > 10) {
+                      e.target.value = e.target.value.slice(0, 10);
+                    }
+                  }}
                   onChange={(e) => setMobileNumber(e.target.value)}
                 />
               </div>
@@ -619,6 +651,12 @@ function EmployeeAdd() {
                   type="text" 
                   name="mobileNumber2" 
                   value={mobileNumber2}
+                  maxLength={10}
+                  onInput={(e) => {
+                    if (e.target.value.length > 10) {
+                      e.target.value = e.target.value.slice(0, 10);
+                    }
+                  }}
                   onChange={(e) => setMobileNumber2(e.target.value)}
                 />
               </div>
@@ -727,12 +765,41 @@ function EmployeeAdd() {
             </div>
           )}
 
-        
-          {activeTab === "EDU/EXPE" && (
+          {activeTab === "Qualifications" && (
             <div className="edu-expe-wrapper">
-              {/* SECTION 1: QUALIFICATIONS */}
+              {/* PREVIOUSLY SAVED QUALIFICATIONS - Only show in edit mode */}
+              {id && qualifications.length > 0 && (
+                <div className="form-section">
+                  <h3 className="section-title">Previously Saved Qualifications</h3>
+                  <div className="document-table-wrap">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Degree / Qualification</th>
+                          <th>Institute / University</th>
+                          <th>Year of Passing</th>
+                          {/* <th>Added Date</th> */}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {qualifications.map((qual, index) => (
+                          <tr key={index}>
+                            <td>{qual.degreename || "-"}</td>
+                            <td>{qual.instituteuniversity || "-"}</td>
+                            <td>{qual.yearofpassing || "-"}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+        
+
+              {/* ADD NEW QUALIFICATIONS */}
               <div className="form-section">
-                <h3 className="section-title">Qualification Details</h3>
+                <h3 className="section-title">Add Qualifications</h3>
                 {educationList.map((edu, index) => (
                   <div key={`edu-${index}`} className="dynamic-row grid-3">
                     <div className="form-field">
@@ -790,10 +857,39 @@ function EmployeeAdd() {
                   + Add Qualification
                 </button>
               </div>
+            </div>
+          )}
 
-              <hr className="form-divider" />
-
-              {/* SECTION 2: WORK EXPERIENCE */}
+        
+          {activeTab === "Experience" && (
+            <div className="edu-expe-wrapper">
+              {/* PREVIOUSLY SAVED EXPERIENCE - Only show in edit mode */}
+        {id && experienceList.length > 0 && (
+                <div className="form-section">
+                  <h3 className="section-title">Previously Saved Qualifications</h3>
+                  <div className="document-table-wrap">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Organization Name</th>
+                          <th>Designation</th>
+                          <th>Duration (From - To)</th>
+                          {/* <th>Added Date</th> */}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {experienceList.map((expe, index) => (
+                          <tr key={index}>
+                            <td>{expe.org_name || "-"}</td>
+                            <td>{expe.desig_name || "-"}</td>
+                            <td>{expe.from_dt && expe.to_dt ? `${expe.from_dt} - ${expe.to_dt}` : "-"}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
               <div className="form-section">
                 <h3 className="section-title">Work Experience</h3>
                 {experienceList.map((exp, index) => (

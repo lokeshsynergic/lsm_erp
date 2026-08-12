@@ -118,6 +118,30 @@ const styles = StyleSheet.create({
     fontStyle: "italic",
     lineHeight: 1.3,
   },
+  /* --- Pin Signature to Page Bottom --- */
+  signatureSection: {
+    position: "absolute",
+    bottom: 30, // Distance from the bottom edge of the page
+    left: 30, // Matches page padding
+    right: 30, // Matches page padding
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  signatureContainer: {
+    width: 220,
+    alignItems: "center",
+  },
+  signatureLine: {
+    width: "100%",
+    borderBottomWidth: 1,
+    borderBottomColor: "#0F172A",
+    marginBottom: 6,
+  },
+  signatureLabel: {
+    fontSize: 9,
+    fontWeight: "bold",
+    color: "#1E293B",
+  },
 });
 
 // Helper component for styled form fields
@@ -149,7 +173,9 @@ export const CallLogPDF = ({ formData = {} }) => (
       <View style={styles.headerContainer}>
         <Image src={logo} style={styles.logo} />
         <View>
-          <Text style={styles.title}>Life Safe Medical</Text>
+          <Text style={styles.title}>
+            Life Safe Medical{"\n"}Visit us at:https://lifesafemedical.org.in/
+          </Text>
         </View>
         <Text style={styles.badge}>Call # {formData.callNo}</Text>
       </View>
@@ -254,6 +280,16 @@ export const CallLogPDF = ({ formData = {} }) => (
       {/* Spare Parts Details */}
       <Text style={styles.sectionTitle}>Spare Parts Used</Text>
       <LargeTextBox value={formData.spareParts} placeholder="" />
+      <View style={styles.signatureSection}>
+        <View style={styles.signatureContainer}>
+          <View style={styles.signatureLine} />
+          <Text style={styles.signatureLabel}>Engineer's Signature</Text>
+        </View>
+        <View style={styles.signatureContainer}>
+          <View style={styles.signatureLine} />
+          <Text style={styles.signatureLabel}>Customer's Signature</Text>
+        </View>
+      </View>
     </Page>
   </Document>
 );

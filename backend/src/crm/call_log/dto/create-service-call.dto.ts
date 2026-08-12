@@ -64,4 +64,20 @@ export class CreateServiceCallDto {
   @IsString()
   @IsOptional()
   equipment_status?: string;
+
+  @IsString()
+  @IsOptional()
+  coverage_mode?: string;
+
+  @IsString()
+  @IsOptional()
+  priority?: string;
+
+  @IsString()
+  @IsOptional()
+  vendor_name?: string;
+
+  @IsString()
+  @IsOptional()
+  service_provider_type?: string;
 }

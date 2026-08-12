@@ -80,6 +80,19 @@ export class EmployeeController {
   async getempDocuments(@Param('empCode') empCode: string): Promise<any[]> {
     return await this.employeeService.getempDocuments(empCode);
   }
+
+  /**
+   * Get employee qualifications
+   * GET /master/emp/:empCode/qualifications
+   */
+  @Get(':empCode/qualifications')
+  async getEmployeeQualifications(@Param('empCode') empCode: string): Promise<any[]> {
+    return await this.employeeService.getEmployeeQualifications(empCode);
+  }
+  @Get(':empCode/experience')
+  async getEmployeeExperience(@Param('empCode') empCode: string): Promise<any[]> {
+    return await this.employeeService.getEmployeeExperience(empCode);
+  }
    
   /**
    * Get active employees

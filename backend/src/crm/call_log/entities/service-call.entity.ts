@@ -61,4 +61,16 @@ export class ServiceCall {
 
   @Column({ type: 'timestamp with time zone', default: () => 'CURRENT_TIMESTAMP', onUpdate: 'CURRENT_TIMESTAMP' })
   updated_at: Date;
+
+  @Column({ type: 'varchar', length: 30, nullable: true })
+  coverage_mode?: string;
+
+  @Column({ type: 'varchar', length: 20, nullable: true })
+  priority?: string;
+
+  @Column({ type: 'varchar', length: 100, nullable: true })
+  vendor_name?: string;
+
+  @Column({ type: 'varchar', length: 5, nullable: true })
+  service_provider_type?: string;
 }

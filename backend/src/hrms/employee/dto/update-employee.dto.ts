@@ -1,3 +1,5 @@
+// import { Type } from 'class-transformer/types/decorators/type.decorator';
+import { Type } from 'class-transformer';
 import {
   IsString,
   IsNotEmpty,
@@ -6,7 +8,41 @@ import {
   IsNumber,
   IsDateString,
   Length,
+  ValidateNested,
+  IsArray,
 } from 'class-validator';
+
+export class CreateEducationDto {
+  @IsOptional()
+  @IsString()
+  qualification?: string;
+
+  @IsOptional()
+  @IsString()
+  institute?: string;
+
+  @IsOptional()
+  @IsNumber()
+  yearOfPassing?: number;
+}
+
+export class CreateExperienceDto {
+  @IsOptional()
+  @IsString()
+  orgName?: string;
+
+  @IsOptional()
+  @IsString()
+  designationName?: string;
+
+  @IsOptional()
+  @IsNumber()
+  fromDate?: number;
+
+  @IsOptional()
+  @IsNumber()
+  toDate?: number;
+}
 
 export class UpdateEmployeeDto {
   @IsOptional()
@@ -140,4 +176,16 @@ export class UpdateEmployeeDto {
   @IsString()
   @Length(1, 1)
   status?: string;
+
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => CreateEducationDto)
+  education?: CreateEducationDto[];
+
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => CreateExperienceDto)
+  experience?: CreateExperienceDto[];
 }
