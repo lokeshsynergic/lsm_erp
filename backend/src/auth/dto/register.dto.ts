@@ -13,4 +13,7 @@ export class RegisterDto {
   @IsString()
   @IsNotEmpty()
   usertype: string;
+
+  @IsString()
+  usermode?: string;
 }

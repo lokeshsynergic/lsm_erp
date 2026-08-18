@@ -49,6 +49,7 @@ function AddCallLog() {
     equipment_status: "",
     coverage_mode: "",
     priority: "",
+    service_close_dttime: "",
   });
 
   // Fetch employees for dropdown
@@ -79,7 +80,18 @@ function AddCallLog() {
       console.log("Loading call log with ID:", id);
       const data = await getCalllogById(id);
       console.log("Call log data loaded:", data);
-      setFormData(data);
+      
+      // Format datetime field for datetime-local input
+      const formattedData = {
+        ...data,
+        call_no: data.call_no || "",
+        call_date: data.call_date || "",
+        service_close_dttime: data.service_close_dttime 
+          ? new Date(data.service_close_dttime).toISOString().slice(0, 16)
+          : "",
+      };
+      
+      setFormData(formattedData);
       setIsSaved(true);
     } catch (err) {
       console.error("Error loading call log:", err);
@@ -114,7 +126,16 @@ function AddCallLog() {
     try {
       setSaving(true);
       setError("");
-      const response = await saveCalllog(formData, id);
+      
+      // Convert datetime-local to ISO UTC format for backend
+      const dataToSave = {
+        ...formData,
+        service_close_dttime: formData.service_close_dttime
+          ? new Date(formData.service_close_dttime).toISOString()
+          : null,
+      };
+      
+      const response = await saveCalllog(dataToSave, id);
       setIsSaved(true);
       
       // Navigate back to call log list after successful save
@@ -359,7 +380,7 @@ function AddCallLog() {
                     <option value="">-- Select Engineer --</option>
                     {employees.map((emp) => (
                       <option key={emp.emp_code} value={emp.emp_code}>
-                        {emp.emp_name} ({emp.emp_code})
+                        {emp.first_name} {emp.last_name} {emp.last_name} ({emp.emp_code})
                       </option>
                     ))}
                   </select>
@@ -476,14 +497,11 @@ function AddCallLog() {
               <div className="form-section">
                 <div className="form-grid">
 
-                  <div className="form-field">
-                  
-                      <b>Service Types</b>
-                    
-                  </div>
                    <div className="form-field">
+                     <label>Service Types</label>
                       <div className="checkbox-group" >
-                        <select name="service_type" value={formData.service_type} onChange={handleInputChange}>
+                        <select name="service_type" value={formData.service_type} onChange={handleInputChange} required>
+                          <option value="">Please select</option>
                         <option value="Breakdown">Breakdown</option>
                         <option value="PM">PM</option>
                         <option value="Installation">Installation</option>
@@ -492,6 +510,17 @@ function AddCallLog() {
                         </select>
                         </div>
                   </div>
+
+                   <div className="form-field">
+                        <label>Service Close Date and Time</label>
+                        <input
+                          type="datetime-local"
+                          name="service_close_dttime"
+                          value={formData.service_close_dttime}
+                          onChange={handleInputChange}
+                          placeholder="Enter service close date and time"
+                        />
+                    </div>
                      
                 </div>
                 <div className="form-grid">

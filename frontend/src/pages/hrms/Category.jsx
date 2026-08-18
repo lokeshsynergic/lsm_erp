@@ -2,7 +2,6 @@ import { NavLink, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { getCategory } from "../../services/hrms/masterService";
 import Layout from "../../components/Layout";
-
 import "../../styles/main.css";
 
 function Category() {
@@ -10,9 +9,7 @@ function Category() {
    const [loading, setLoading] = useState(false);
    const [error, setError] = useState("");
    const navigate = useNavigate();
- //   const handleEdit = (id) => {
- //     console.log("Edit department with id:", id);
- //   };
+ 
    const handleEdit = (id) => {
         navigate(`/hrms/category/edit/${id}`);
     };
@@ -35,9 +32,8 @@ function Category() {
 
   return (
     <Layout>
-      {/* <div className="department-list"> */}
-      <div className="department-list-table-wrap">
-        <div className="department-list-heading">
+      <div className="category-list">
+        <div className="category-list-heading">
           <div>
             <span>HRMS</span>
             <h1>Category</h1>
@@ -47,7 +43,7 @@ function Category() {
           </NavLink>
         </div>
 
-        <div className="table-container">
+        <div className="category-list-table-wrap">
           <table>
             <thead>
               <tr>
@@ -60,13 +56,14 @@ function Category() {
             <tbody>
               {categoryData.map((category, index) => (
                 <tr key={category.cat_id}>
-                  <td className="table-cell">{index + 1}</td>
-                  <td className="table-cell">{category.category_name}</td>
-                  <td className="table-cell">
+                  <td>{index + 1}</td>
+                  <td>{category.category_name}</td>
+                  <td>
                     <button
                       className="edit-btn"
                       onClick={() => handleEdit(category.cat_id)}
                     >
+                      Edit
                     </button>
                   </td>
                 </tr>

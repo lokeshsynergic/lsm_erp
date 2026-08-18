@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { NavLink } from "react-router-dom";
 import "./Sidebar.css";
-import { BadgeCheck, BriefcaseBusiness, Building2, ChevronDown, Clock3, FileText, GraduationCap, IdCard, Tags, UserRound, Users } from "lucide-react";
+import { BadgeCheck, BriefcaseBusiness, Building2, ChevronDown, Clock3, FileText, GraduationCap, IdCard, Tags, UserRound, Users,Boxes } from "lucide-react";
 
 
 const menuItems = [
@@ -71,6 +71,62 @@ const menuItems = [
         label: "Call Log", 
         icon: <FileText size={16} />,
         to: "/crm/call-log" },
+    ],
+  },
+  {
+    label: "Users",
+    icon: <Users size={18} strokeWidth={1.8} color="currentColor" />,
+    expandable: true,
+    submenu: [
+      {
+        label: "User List",
+        icon: <UserRound size={16} />,
+        to: "/users/list",
+      },
+      {
+        label: "Approvals",
+        icon: <BadgeCheck size={16} />,
+        to: "/users/approvals",
+      },
+    ],
+  },
+  {
+    label: "INVENTORY",
+    icon: <Boxes size={18} strokeWidth={1.8} color="currentColor" />,
+    expandable: true,
+    submenu: [
+      {
+        label: "Master",
+        icon: (
+          <GraduationCap
+             size={18} strokeWidth={1.8}
+            color="currentColor"
+          />
+        ),
+        expandable: true,
+        submenu: [
+          {
+            label: "Category",
+            icon: <Building2 size={16} />,
+            to: "/inventory/category",
+          },
+          {
+            label: "Subcategory",
+            icon: <BadgeCheck size={16} />,
+            to: "/inventory/subcategory",
+          },
+          {
+            label: "Manufacturer",
+            icon: <Tags size={16} />,
+            to: "/inventory/manufacturer",
+          },
+          {
+            label: "Unit",
+            icon: <UserRound size={16} />,
+            to: "/inventory/unit",
+          },
+        ],
+      },
     ],
   },
   { label: "Quality", icon: "🎯", hidden: true },

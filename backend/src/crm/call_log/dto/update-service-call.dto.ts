@@ -84,4 +84,8 @@ export class UpdateServiceCallDto {
   @IsString()
   @IsOptional()
   service_provider_type?: string;
+
+  @IsDateString()
+  @IsOptional()
+  service_close_dttime?: Date;
 }

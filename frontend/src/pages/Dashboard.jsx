@@ -1,6 +1,6 @@
 import Layout from "../components/Layout";
 import requestData from "../data/requestData";
-import "../styles/about.css";
+// import "../styles/about.css";
 
 function Dashboard() {
   return (

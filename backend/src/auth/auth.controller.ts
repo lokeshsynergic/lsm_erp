@@ -35,12 +35,14 @@ export class AuthController {
     // Hash password
     const hashedPassword = await this.authService.hashPassword(registerDto.password);
 
-    // Create new user
+    // Create new user - not approved by default
     const newUser = this.userRepository.create({
       user_id: registerDto.user_id,
       password: hashedPassword,
       usertype: registerDto.usertype || 'U', // Default to User type
       user_status: 'A', // Active by default
+      is_approved: false, // Not approved until admin approves
+      usermode: registerDto.usermode || 'W', // Default to Web
     });
 
     await this.userRepository.save(newUser);
@@ -48,7 +50,7 @@ export class AuthController {
     // Return user without password
     const { password: _, ...userWithoutPassword } = newUser;
     return {
-      message: 'User registered successfully',
+      message: 'User registered successfully. Awaiting admin approval.',
       user: userWithoutPassword,
     };
   }

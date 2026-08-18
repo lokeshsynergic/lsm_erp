@@ -5,6 +5,8 @@ import Login from "./pages/Login";
 import Profile from "./pages/Profile";
 import HrmsRoutes from "./routes/HrmsRoutes";
 import CrmRoutes from "./routes/CrmRoutes";
+import UsersRoutes from "./routes/UsersRoutes";
+import InventoryRoutes from "./routes/InventoryRoutes";
 
 function App() {
   return (
@@ -18,6 +20,8 @@ function App() {
         <Route path="/about" element={<About />} />
         <Route path="/hrms/*" element={<HrmsRoutes />} />
         <Route path="/crm/*" element={<CrmRoutes />} />
+        <Route path="/users/*" element={<UsersRoutes />} />
+        <Route path="/inventory/*" element={<InventoryRoutes />} />
       </Routes>
     </BrowserRouter>
   );

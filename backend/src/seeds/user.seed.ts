@@ -27,6 +27,7 @@ async function seedDatabase() {
       password: '$2b$10$s9EJrJrRevtGEGHHgdALvud7K49NGefkzwnaahOq.gtqoC2l.O6FG',
       usertype: 'A', // Admin type
       user_status: 'A', // Active
+      is_approved: true, // Approve admin user
     });
 
     await userRepository.save(adminUser);

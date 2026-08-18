@@ -7,7 +7,7 @@ export class CreateServiceCallDto {
 
   @IsString()
   @IsNotEmpty()
-  customer: string;
+  customer?: string;
 
   @IsString()
   @IsOptional()
@@ -80,4 +80,8 @@ export class CreateServiceCallDto {
   @IsString()
   @IsOptional()
   service_provider_type?: string;
+
+  @IsDateString()
+  @IsOptional()
+  service_close_dttime?: Date;
 }

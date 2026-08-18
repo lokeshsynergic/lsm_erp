@@ -49,16 +49,32 @@ export class ServiceCallService {
   /**
    * Get all service calls
    */
-    async findAll(): Promise<ServiceCall[]> {
-    return await this.serviceCallRepository
-      .createQueryBuilder('service_call')
-      .leftJoin('md_hrms_employee', 'engineer', 'service_call.engineer = engineer.emp_code')
-      .addSelect(
-        `CONCAT_WS(' ', engineer.first_name, engineer.middle_name, engineer.last_name)`,
-        'service_call_engineer_name'
-      )
-      .getMany();
-  }
+  //   async findAll(): Promise<ServiceCall[]> {
+  //   return await this.serviceCallRepository
+  //     .createQueryBuilder('service_call')
+  //     .leftJoin('md_hrms_employee', 'emp', 'service_call.engineer = emp.emp_code')
+  //     .addSelect(
+  //       `CONCAT_WS(' ', emp.first_name, emp.middle_name, emp.last_name)`,
+  //       'service_call_engineer_name'
+  //     )
+  //     .getMany();
+  // }
+
+  async findAll(): Promise<any[]> {
+  return await this.serviceCallRepository.query(`
+    SELECT
+      sc.*,
+      CONCAT_WS(
+        ' ',
+        emp.first_name,
+        emp.middle_name,
+        emp.last_name
+      ) AS service_call_engineer_name
+    FROM td_crm_service_call sc
+    LEFT JOIN md_hrms_employee emp
+      ON sc.engineer = emp.emp_code
+  `);
+}
 
   /**
    * Get service call by ID

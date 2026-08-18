@@ -116,13 +116,14 @@ function CallLog() {
         department: log.department,
         contactPerson: log.contactPerson || log.contact_person,
         mobile: log.mobile || log.mobile_number,
-        engineer: log.engineer || log.service_call_engineer_name,
+        engineer: log.service_provider_type === 'OWN' ? log.service_call_engineer_name : log.vendor_name,
         equipmentName: log.equipmentName || log.equipment_name,
         make: log.make,
         model: log.model,
         serialNo: log.serial_no || log.serialNo,
         assetId: log.asset_id || log.assetId,
         complaintReported: log.complaintReported || log.complaint_reported,
+        service_type: log.service_type,
         actionTaken: log.action_taken || log.actionTaken,
         spareParts: log.spare_parts || log.spareParts,
         status: log.equipment_status,
@@ -252,6 +253,7 @@ function CallLog() {
                 <tr>
                   <th>SL No</th>
                   <th>Call No</th>
+                  <th>Call Dt</th>
                   <th>Customer Name</th>
                   <th>Contact Person</th>
                   <th>Mobile</th>
@@ -268,13 +270,16 @@ function CallLog() {
                   <tr key={log.id || index}>
                     <td className="table-cell">{index + 1}</td>
                     <td className="table-cell">{log.call_no || "-"}</td>
+                    <td className="table-cell">{log.call_date
+  ? new Date(log.call_date).toLocaleDateString("en-GB")
+  : "-"}</td>
                     <td className="table-cell">{log.customer || log.customer_name || "-"}</td>
                     <td className="table-cell">{log.contactPerson || log.contact_person || "-"}</td>
                     <td className="table-cell">{log.mobile || log.mobile_number || "-"}</td>
                     <td className="table-cell">{log.equipmentName || log.equipment_name || "-"}</td>
                     <td className="table-cell">{log.complaintReported || log.complaint_reported || "-"}</td>
 
-                    <td className="table-cell">{log.engineer || log.service_call_engineer_name || "-"}</td>
+                    <td className="table-cell">{log.service_provider_type === 'OWN' ? log.service_call_engineer_name : log.vendor_name} </td>
                     <td className="table-cell">
                       <span className={`status-badge ${
                         log.equipment_status === 'Close' ? 'close' :

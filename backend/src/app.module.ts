@@ -6,9 +6,12 @@ import { AppService } from './app.service';
 import { HrmsModule } from './hrms/hrms.module';
 import { CrmModule } from './crm/crm.module';
 import { AuthModule } from './auth/auth.module';
+import { UsersModule } from './users/users.module';
 import { Employee } from './hrms/employee/entities/employee.entity';
 import { ServiceCall } from './crm/call_log/entities/service-call.entity';
 import { User } from './auth/entities/user.entity';
+import { MobileModule } from './mobile/mobile.module';
+import { InventoryModule } from './inventory/inventory.module';
 
 @Module({
   imports: [
@@ -29,6 +32,9 @@ import { User } from './auth/entities/user.entity';
     AuthModule,
     HrmsModule,
     CrmModule,
+    UsersModule,
+    MobileModule,
+    InventoryModule
   ],
   controllers: [AppController],
   providers: [AppService],
