@@ -76,3 +76,78 @@ lerna-debug.log*
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+# Miscellaneous
+*.class
+*.log
+*.pyc
+*.swp
+.DS_Store
+.atom/
+.buildlog/
+.history
+.svn/
+mkspecs/
+server.executable
+
+# IntelliJ IDEA
+*.iml
+*.ipr
+*.iws
+.idea/
+
+# Visual Studio Code
+.vscode/
+
+# Flutter / Dart
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+build/
+
+# Web dependencies
+lib/generated_plugin_registrant.dart
+
+# Symbol files
+*.symbols
+
+# Obfuscation map files
+app.*.map.json
+
+# Android
+android/app/debug/
+android/app/profile/
+android/app/release/
+android/app/src/main/assets/
+android/key.properties
+
+# iOS / macOS
+ios/Runner/GeneratedPluginRegistrants/
+ios/Runner/Assets.xcassets/
+ios/Flutter/App.framework
+ios/Flutter/Flutter.framework
+ios/Flutter/Flutter.podspec
+ios/Flutter/Generated.xcconfig
+ios/Flutter/app.flx
+ios/Flutter/app.zip
+ios/Flutter/flutter_assets/
+ios/ServiceDefinitions.json
+ios/Runner/GeneratedPluginRegistrant.h
+ios/Runner/GeneratedPluginRegistrant.m
+ios/Pods/
+ios/.symlinks/
+*.xcworkspace
+*.xcuserdata
+
+# CocoaPods
+Pods/
+Podfile.lock
+
+# Coverage
+coverage/
+
+# Environment variables / secrets
+.env*
