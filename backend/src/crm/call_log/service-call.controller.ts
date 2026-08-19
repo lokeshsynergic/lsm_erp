@@ -8,11 +8,18 @@ import {
   Delete,
   HttpCode,
   HttpStatus,
+  UseInterceptors,
+  UploadedFile,
+  BadRequestException,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { multerOptions } from '../../common/multer.config';
 import { ServiceCallService } from './service-call.service';
 import { CreateServiceCallDto } from './dto/create-service-call.dto';
 import { UpdateServiceCallDto } from './dto/update-service-call.dto';
+import { UploadServiceCallImageDto } from './dto/upload-service-call-image.dto';
 import { ServiceCall } from './entities/service-call.entity';
+import { ServiceCallDocument } from './entities/service-call-image-doc';
 
 @Controller('crm/call-log')
 export class ServiceCallController {
@@ -66,6 +73,24 @@ export class ServiceCallController {
   ): Promise<ServiceCall> {
     return await this.serviceCallService.update(+id, updateServiceCallDto);
   }
+
+  /**
+   * Upload image/PDF for service call (used when engineer completes task)
+   * POST /crm/call-log/:callNo/upload-image
+   */
+  @Post(':callNo/upload-image')
+@HttpCode(HttpStatus.CREATED)
+@UseInterceptors(FileInterceptor('file', multerOptions('crm/Calllog')))
+async uploadImage(
+  @Param('callNo') callNo: string,
+  @UploadedFile() file: Express.Multer.File,
+  @Body() uploadServiceCallImageDto: UploadServiceCallImageDto,
+): Promise<ServiceCallDocument> {
+  if (!file) {
+    throw new BadRequestException('Image file is required');
+  }
+  return await this.serviceCallService.uploadImage(callNo, file, uploadServiceCallImageDto);
+}
 
   /**
    * Delete service call

@@ -4,10 +4,10 @@ import { useNavigate, useParams } from "react-router-dom";
 import "../../styles/employeeAdd.css"; 
 import { PDFDownloadLink } from '@react-pdf/renderer';
 
-import { saveCalllog, getCalllogById } from "../../services/crm/call_log";
+import { saveCalllog, getCalllogById,uploadCalllogImage } from "../../services/crm/call_log";
 import { getEmployee } from "../../services/hrms/employeeService";
 
-const tabs = [
+const baseTabs = [
   "Call Details",
   "Equipment Details",
   "Service Details",
@@ -18,6 +18,10 @@ const tabs = [
 function AddCallLog() {
   const navigate = useNavigate();
   const { id } = useParams();
+  
+  // Determine tabs based on whether in edit mode
+  const tabs = id ? [...baseTabs, "Documents"] : baseTabs;
+  
   const [activeTab, setActiveTab] = useState(tabs[0]);
   const [showServiceType, setShowServiceType] = useState(true);
   const [loading, setLoading] = useState(false);
@@ -25,6 +29,14 @@ function AddCallLog() {
   const [saving, setSaving] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
   const [employees, setEmployees] = useState([]);
+
+  // Documents state
+  const [documents, setDocuments] = useState([]);
+  const [documentInput, setDocumentInput] = useState({
+    file: null,
+    description: "",
+    fileType: "",
+  });
 
   // Form State
   const [formData, setFormData] = useState({
@@ -148,6 +160,77 @@ function AddCallLog() {
     } finally {
       setSaving(false);
     }
+  };
+
+  // Document handling functions
+  const handleDocumentFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setDocumentInput((prev) => ({
+        ...prev,
+        file,
+        fileType: file.type.includes("image") ? "image" : "pdf",
+      }));
+    }
+  };
+
+  const handleDocumentDescriptionChange = (e) => {
+    setDocumentInput((prev) => ({
+      ...prev,
+      description: e.target.value,
+    }));
+  };
+
+  const handleAddDocument = async () => {
+    if (!documentInput.file || !documentInput.description) {
+      setError("Please select a file and provide a description");
+      return;
+    }
+
+    if (!formData.call_no && !id) {
+      setError("Please save the call log first before uploading documents");
+      return;
+    }
+
+    try {
+      setSaving(true);
+      setError("");
+
+      const callNo = formData.call_no || id;
+
+      // Prepare document data for backend
+      const uploadData = {
+        serviceCallNo: callNo,
+        imagePath: `uploads/crm/Calllog/${documentInput.file.name}`,
+        fileType: documentInput.fileType,
+        description: documentInput.description,
+        createdBy: "", // Can be set from user context if available
+      };
+
+      // Call backend API to save document record
+      await uploadCalllogImage(callNo, uploadData);
+
+      const newDocument = {
+        id: Date.now(),
+        fileName: documentInput.file.name,
+        description: documentInput.description,
+        fileType: documentInput.fileType,
+        file: documentInput.file,
+      };
+
+      setDocuments((prev) => [...prev, newDocument]);
+      setDocumentInput({ file: null, description: "", fileType: "" });
+      setError("");
+    } catch (err) {
+      setError(err.message || "Error uploading document");
+      console.error("Upload error:", err);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDeleteDocument = (docId) => {
+    setDocuments((prev) => prev.filter((doc) => doc.id !== docId));
   };
 
   return (
@@ -582,6 +665,87 @@ function AddCallLog() {
                 </button>
 
               </div>
+            </>
+          )}
+          {activeTab === "Documents" && id && (
+            <>
+              <div className="form-grid">
+                <div className="form-field full-width">
+                  <label>Upload Document (Image/PDF)</label>
+                  <input
+                    type="file"
+                    accept=".pdf,.jpg,.jpeg,.png,.gif"
+                    onChange={handleDocumentFileChange}
+                  />
+                  {documentInput.file && (
+                    <small style={{ display: "block", marginTop: "8px", color: "#666" }}>
+                      Selected: {documentInput.file.name}
+                    </small>
+                  )}
+                </div>
+
+                <div className="form-field full-width">
+                  <label>Description</label>
+                  <textarea
+                    rows="3"
+                    value={documentInput.description}
+                    onChange={handleDocumentDescriptionChange}
+                    placeholder="Enter description for this document"
+                  />
+                </div>
+
+                <div className="form-field full-width">
+                  <button
+                    type="button"
+                    className="add-btn"
+                    onClick={handleAddDocument}
+                    disabled={!documentInput.file || !documentInput.description || saving}
+                  >
+                    {saving ? "Uploading..." : "+ Add Document"}
+                  </button>
+                </div>
+              </div>
+
+              {documents.length > 0 && (
+                <div className="section-title">Uploaded Documents</div>
+              )}
+
+              {documents.length > 0 && (
+                <div className="table-container">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>File Name</th>
+                        <th>Type</th>
+                        <th>Description</th>
+                        <th>Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {documents.map((doc) => (
+                        <tr key={doc.id}>
+                          <td className="table-cell">{doc.fileName}</td>
+                          <td className="table-cell">
+                            <span className={`badge ${doc.fileType}`}>
+                              {doc.fileType === "image" ? "📷 Image" : "📄 PDF"}
+                            </span>
+                          </td>
+                          <td className="table-cell">{doc.description}</td>
+                          <td className="table-cell">
+                            <button
+                              type="button"
+                              className="delete-btn"
+                              onClick={() => handleDeleteDocument(doc.id)}
+                            >
+                              Delete
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </>
           )}
 

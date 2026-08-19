@@ -20,6 +20,33 @@
   transform: scale(0.98);
 }
 
+.delete-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 1px solid #ee6b60;
+  border-radius: 6px;
+  background-color: #f05a4f;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  /* SVG Trash Icon embedded as background */
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="14" height="16" viewBox="0 0 24 24" fill="none" stroke="%23ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>');
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.delete-btn:hover {
+  background-color: #e74c3c;
+}
+
+.delete-btn:active {
+  transform: scale(0.98);
+}
+
 .print-btn {
   display: inline-flex;
   align-items: center;
@@ -43,9 +70,10 @@
 }
 
 .action-buttons {
- 
+  display: flex;
   align-items: center;
-  gap: 4px;
+  justify-content: center;
+  gap: 6px;
   margin-top: auto;
 }
 

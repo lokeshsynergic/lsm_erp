@@ -2,14 +2,20 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ServiceCall } from './entities/service-call.entity';
+import { ServiceCallDocument } from './entities/service-call-image-doc';
 import { CreateServiceCallDto } from './dto/create-service-call.dto';
 import { UpdateServiceCallDto } from './dto/update-service-call.dto';
+import { UploadServiceCallImageDto } from './dto/upload-service-call-image.dto';
 
 @Injectable()
 export class ServiceCallService {
   constructor(
     @InjectRepository(ServiceCall)
     private serviceCallRepository: Repository<ServiceCall>,
+    @InjectRepository(ServiceCallDocument)
+    private serviceCallDocumentRepository: Repository<ServiceCallDocument>,
+    // @InjectRepository(ServiceCallImage)
+    // private readonly serviceCallImageRepository: Repository<ServiceCallImage>,
   ) {}
 
   /**
@@ -117,4 +123,38 @@ export class ServiceCallService {
     const serviceCall = await this.findOne(id);
     await this.serviceCallRepository.remove(serviceCall);
   }
+
+  /**
+   * Upload image/PDF for service call (used when engineer completes task)
+   * Saves to: uploads/crm/Calllog/
+   */
+      async uploadImage(
+      callNo: string,
+      file: Express.Multer.File,
+      uploadServiceCallImageDto: UploadServiceCallImageDto,
+    ): Promise<ServiceCallDocument> {
+      // 1. Verify service call exists
+      const serviceCall = await this.serviceCallRepository.findOne({
+        where: { call_no: callNo },
+      });
+
+      if (!serviceCall) {
+        throw new NotFoundException(`Service call with number ${callNo} not found`);
+      }
+
+      // 2. Extract relative image path from Multer
+      const imagePath = file.path ? file.path.replace(/\\/g, '/') : `crm/Calllog/${file.filename}`;
+
+      // 3. Map properties explicitly to match ServiceCallDocument schema
+      const serviceCallDocument = this.serviceCallDocumentRepository.create({
+        serviceCallNo: callNo,
+        imagePath: imagePath,
+        fileType: file.mimetype || uploadServiceCallImageDto.fileType,
+        description: uploadServiceCallImageDto.description,
+        createdBy: uploadServiceCallImageDto.createdBy,
+      });
+
+      // 4. Persist to td_crm_service_call_doc table
+      return await this.serviceCallDocumentRepository.save(serviceCallDocument);
+    }
 }

@@ -7,6 +7,8 @@ import AddManufacturer from "../pages/inventory/master/AddManufacturer";
 import Manufacturer from "../pages/inventory/master/Manufacturer";
 import Unit from "../pages/inventory/master/Unit";
 import AddUnit from "../pages/inventory/master/AddUnit";
+import ProductList from "../pages/inventory/products/ProductList";
+import ProductAdd from "../pages/inventory/products/ProductAdd";
 
 
 function InventoryRoutes() {
@@ -24,6 +26,10 @@ function InventoryRoutes() {
       <Route path="/unit" element={<Unit />} />
       <Route path="/unit/new" element={<AddUnit />} />
       <Route path="/unit/edit/:id" element={<AddUnit />} />
+      <Route path="/products" element={<ProductList />} />
+      <Route path="/products/new" element={<ProductAdd />} />
+      <Route path="/products/edit/:id" element={<ProductAdd />} />
+      
     </Routes>
   );
 }

@@ -17,3 +17,19 @@ export const saveCalllog = (data, id) => {
 export const getCalllogById = (id) => {
   return apiRequest("GET", `/crm/call-log/${id}`);
 };
+
+export const uploadCalllogImage = (callNo, file, description, fileType) => {
+  const formData = new FormData();
+  formData.append("file", file); // Must match backend @UseInterceptors(FileInterceptor('file'))
+  formData.append("description", description);
+  formData.append("fileType", fileType);
+
+  return apiRequest("POST", `/crm/call-log/${callNo}/upload`, formData, {
+    "Content-Type": "multipart/form-data",
+  });
+};
+
+// Fetch documents uploaded for a specific call log
+export const getCalllogDocuments = (callNo) => {
+  return apiRequest("GET", `/crm/call-log/${callNo}/documents`);
+};
