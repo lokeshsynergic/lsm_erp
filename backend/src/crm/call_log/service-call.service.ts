@@ -128,33 +128,46 @@ export class ServiceCallService {
    * Upload image/PDF for service call (used when engineer completes task)
    * Saves to: uploads/crm/Calllog/
    */
-      async uploadImage(
-      callNo: string,
-      file: Express.Multer.File,
-      uploadServiceCallImageDto: UploadServiceCallImageDto,
-    ): Promise<ServiceCallDocument> {
-      // 1. Verify service call exists
-      const serviceCall = await this.serviceCallRepository.findOne({
-        where: { call_no: callNo },
-      });
+  async uploadImage(
+  callNo: string,
+  file: Express.Multer.File,
+  uploadServiceCallImageDto: UploadServiceCallImageDto,
+  ): Promise<ServiceCallDocument> {
+  // 1. Verify service call exists
+    const serviceCall = await this.serviceCallRepository.findOne({
+      where: { call_no: callNo },
+    });
 
-      if (!serviceCall) {
-        throw new NotFoundException(`Service call with number ${callNo} not found`);
-      }
-
-      // 2. Extract relative image path from Multer
-      const imagePath = file.path ? file.path.replace(/\\/g, '/') : `crm/Calllog/${file.filename}`;
-
-      // 3. Map properties explicitly to match ServiceCallDocument schema
-      const serviceCallDocument = this.serviceCallDocumentRepository.create({
-        serviceCallNo: callNo,
-        imagePath: imagePath,
-        fileType: file.mimetype || uploadServiceCallImageDto.fileType,
-        description: uploadServiceCallImageDto.description,
-        createdBy: uploadServiceCallImageDto.createdBy,
-      });
-
-      // 4. Persist to td_crm_service_call_doc table
-      return await this.serviceCallDocumentRepository.save(serviceCallDocument);
+    if (!serviceCall) {
+      throw new NotFoundException(`Service call with number ${callNo} not found`);
     }
+
+    // 2. Extract relative image path starting from 'uploads/'
+    let imagePath = `uploads/crm/Calllog/${file.filename}`;
+
+    if (file?.path) {
+      // Normalize Windows backslashes (\) to forward slashes (/)
+      const normalizedPath = file.path.replace(/\\/g, '/');
+      const targetFolder = 'uploads/';
+
+      if (normalizedPath.includes(targetFolder)) {
+        // Strips absolute directory path before 'uploads/'
+        imagePath = targetFolder + normalizedPath.split(targetFolder)[1];
+      } else {
+        imagePath = normalizedPath;
+      }
+    }
+
+    // 3. Map properties explicitly to match ServiceCallDocument schema
+    const serviceCallDocument = this.serviceCallDocumentRepository.create({
+      serviceCallNo: callNo,
+      imagePath: imagePath,
+      fileType: file.mimetype || uploadServiceCallImageDto.fileType,
+      description: uploadServiceCallImageDto.description,
+      createdBy: uploadServiceCallImageDto.createdBy,
+    });
+
+    // 4. Persist to td_crm_service_call_doc table
+    return await this.serviceCallDocumentRepository.save(serviceCallDocument);
+   }
 }

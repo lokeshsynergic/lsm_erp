@@ -3,7 +3,6 @@ import Layout from "../../components/Layout";
 import { useNavigate, useParams } from "react-router-dom";
 import "../../styles/employeeAdd.css"; 
 import { PDFDownloadLink } from '@react-pdf/renderer';
-
 import { saveCalllog, getCalllogById,uploadCalllogImage } from "../../services/crm/call_log";
 import { getEmployee } from "../../services/hrms/employeeService";
 
@@ -18,10 +17,8 @@ const baseTabs = [
 function AddCallLog() {
   const navigate = useNavigate();
   const { id } = useParams();
-  
   // Determine tabs based on whether in edit mode
   const tabs = id ? [...baseTabs, "Documents"] : baseTabs;
-  
   const [activeTab, setActiveTab] = useState(tabs[0]);
   const [showServiceType, setShowServiceType] = useState(true);
   const [loading, setLoading] = useState(false);
@@ -114,6 +111,60 @@ function AddCallLog() {
     }
   };
 
+    // State for dynamic multi-row documents
+  const [documentList, setDocumentList] = useState([
+    { file: null, description: "", fileType: "" },
+  ]);
+
+  // Row management handlers
+  const handleAddDocumentRow = () => {
+    setDocumentList((prev) => [
+      ...prev,
+      { file: null, description: "", fileType: "" },
+    ]);
+  };
+
+  const handleRemoveDocumentRow = (index) => {
+    setDocumentList((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleRowFileChange = (index, e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const updated = [...documentList];
+      updated[index] = {
+        ...updated[index],
+        file,
+        fileType: file.type.includes("image") ? "image" : "pdf",
+      };
+      setDocumentList(updated);
+    }
+  };
+
+  const handleRowDescriptionChange = (index, value) => {
+    const updated = [...documentList];
+    updated[index].description = value;
+    setDocumentList(updated);
+  };
+
+  // Reusable upload executor per document row
+  const executeImageUpload = async (targetCallNo, docItem) => {
+    if (!docItem?.file) return null;
+
+    const calllogFormData = new FormData();
+    calllogFormData.append("file", docItem.file);
+    calllogFormData.append("serviceCallNo", targetCallNo);
+    calllogFormData.append(
+      "imagePath",
+      `uploads/crm/Calllog/${docItem.file.name}`
+    );
+    calllogFormData.append("fileType", docItem.fileType || "");
+    calllogFormData.append("description", docItem.description || "");
+    calllogFormData.append("createdBy", "");
+
+    return await uploadCalllogImage(targetCallNo, calllogFormData);
+  };
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -123,115 +174,62 @@ function AddCallLog() {
     setIsSaved(false);
   };
 
-  const handleCheckboxChange = (e) => {
-    const { value, checked } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      serviceType: checked
-        ? [...prev.serviceType, value]
-        : prev.serviceType.filter((item) => item !== value),
-    }));
-    setIsSaved(false);
-  };
-
   const handleSave = async () => {
-    try {
-      setSaving(true);
-      setError("");
-      
-      // Convert datetime-local to ISO UTC format for backend
-      const dataToSave = {
-        ...formData,
-        service_close_dttime: formData.service_close_dttime
-          ? new Date(formData.service_close_dttime).toISOString()
-          : null,
-      };
-      
-      const response = await saveCalllog(dataToSave, id);
+  try {
+    setSaving(true);
+    setError("");
+
+    // 1. Safe Date Formatting (handles empty strings safely)
+    const formattedDate = formData.service_close_dttime
+      ? new Date(formData.service_close_dttime).toISOString()
+      : null;
+
+    const dataToSave = {
+      ...formData,
+      service_close_dttime: formattedDate,
+    };
+
+    // 2. Save main record
+    const response = await saveCalllog(dataToSave, id);
+    const callNo = response?.call_no || formData?.call_no || id;
+
+    // 3. Process document uploads
+    const validDocs = documentList.filter((doc) => doc.file && doc.description);
+    let uploadErrorsCount = 0;
+
+    if (validDocs.length > 0 && callNo) {
+      for (const doc of validDocs) {
+        try {
+          await executeImageUpload(callNo, doc);
+          console.log(`✓ SUCCESS - Uploaded ${doc.file.name}`);
+        } catch (uploadErr) {
+          uploadErrorsCount++;
+          console.error(`⚠ ERROR - Failed uploading ${doc.file.name}:`, uploadErr);
+        }
+      }
+    }
+
+    // 4. Handle navigation & UI feedback based on upload results
+    if (uploadErrorsCount > 0) {
+      setError(`Call log saved, but ${uploadErrorsCount} document(s) failed to upload.`);
       setIsSaved(true);
+    } else {
+      setIsSaved(true);
+      setDocumentList([{ file: null, description: "", fileType: "" }]);
       
-      // Navigate back to call log list after successful save
+      // Auto-redirect only on complete success
       setTimeout(() => {
         navigate("/crm/call-log");
       }, 1500);
-    } catch (err) {
-      setError(err.message || "Error saving call log");
-      console.error("Save error:", err);
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  // Document handling functions
-  const handleDocumentFileChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setDocumentInput((prev) => ({
-        ...prev,
-        file,
-        fileType: file.type.includes("image") ? "image" : "pdf",
-      }));
-    }
-  };
-
-  const handleDocumentDescriptionChange = (e) => {
-    setDocumentInput((prev) => ({
-      ...prev,
-      description: e.target.value,
-    }));
-  };
-
-  const handleAddDocument = async () => {
-    if (!documentInput.file || !documentInput.description) {
-      setError("Please select a file and provide a description");
-      return;
     }
 
-    if (!formData.call_no && !id) {
-      setError("Please save the call log first before uploading documents");
-      return;
-    }
-
-    try {
-      setSaving(true);
-      setError("");
-
-      const callNo = formData.call_no || id;
-
-      // Prepare document data for backend
-      const uploadData = {
-        serviceCallNo: callNo,
-        imagePath: `uploads/crm/Calllog/${documentInput.file.name}`,
-        fileType: documentInput.fileType,
-        description: documentInput.description,
-        createdBy: "", // Can be set from user context if available
-      };
-
-      // Call backend API to save document record
-      await uploadCalllogImage(callNo, uploadData);
-
-      const newDocument = {
-        id: Date.now(),
-        fileName: documentInput.file.name,
-        description: documentInput.description,
-        fileType: documentInput.fileType,
-        file: documentInput.file,
-      };
-
-      setDocuments((prev) => [...prev, newDocument]);
-      setDocumentInput({ file: null, description: "", fileType: "" });
-      setError("");
-    } catch (err) {
-      setError(err.message || "Error uploading document");
-      console.error("Upload error:", err);
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const handleDeleteDocument = (docId) => {
-    setDocuments((prev) => prev.filter((doc) => doc.id !== docId));
-  };
+  } catch (err) {
+    setError(err.message || "Error saving call log");
+    console.error("Save error:", err);
+  } finally {
+    setSaving(false);
+  }
+};
 
   return (
     <Layout>
@@ -604,12 +602,7 @@ function AddCallLog() {
                           placeholder="Enter service close date and time"
                         />
                     </div>
-                     
                 </div>
-                <div className="form-grid">
-                      
-                </div>
-                 
               </div>
             </>
           )}
@@ -668,93 +661,66 @@ function AddCallLog() {
             </>
           )}
           {activeTab === "Documents" && id && (
-            <>
-              <div className="form-grid">
-                <div className="form-field full-width">
-                  <label>Upload Document (Image/PDF)</label>
-                  <input
-                    type="file"
-                    accept=".pdf,.jpg,.jpeg,.png,.gif"
-                    onChange={handleDocumentFileChange}
-                  />
-                  {documentInput.file && (
-                    <small style={{ display: "block", marginTop: "8px", color: "#666" }}>
-                      Selected: {documentInput.file.name}
-                    </small>
-                  )}
-                </div>
+              <div className="documents-section">
+                {documentList.map((row, index) => (
+                  <div className="form-grid" key={index} style={{ marginBottom: "15px", alignItems: "center" }}>
+                    <div className="form-field">
+                      <label>Upload Document (Image/PDF) #{index + 1}</label>
+                      <input
+                        type="file"
+                        accept=".pdf,.jpg,.jpeg,.png,.gif"
+                        onChange={(e) => handleRowFileChange(index, e)}
+                      />
+                      {row.file && (
+                        <small style={{ display: "block", marginTop: "4px", color: "#666" }}>
+                          Selected: {row.file.name}
+                        </small>
+                      )}
+                    </div>
 
-                <div className="form-field full-width">
-                  <label>Description</label>
-                  <textarea
-                    rows="3"
-                    value={documentInput.description}
-                    onChange={handleDocumentDescriptionChange}
-                    placeholder="Enter description for this document"
-                  />
-                </div>
+                    <div className="form-field">
+                      <label>Description</label>
+                      <textarea
+                        rows="2"
+                        value={row.description}
+                        onChange={(e) => handleRowDescriptionChange(index, e.target.value)}
+                        placeholder="Enter description for this document"
+                      />
+                    </div>
 
-                <div className="form-field full-width">
-                  <button
-                    type="button"
-                    className="add-btn"
-                    onClick={handleAddDocument}
-                    disabled={!documentInput.file || !documentInput.description || saving}
-                  >
-                    {saving ? "Uploading..." : "+ Add Document"}
-                  </button>
-                </div>
-              </div>
+                    <div className="form-field actions-field" style={{ display: "flex", gap: "8px", marginTop: "20px" }}>
+                      {documentList.length > 1 && (
+                        <button
+                          type="button"
+                          className="delete-btn"
+                          onClick={() => handleRemoveDocumentRow(index)}
+                          style={{ backgroundColor: "#dc3545", color: "#fff", padding: "8px 12px", border: "none", borderRadius: "4px" }}
+                        >
+                          - Remove
+                        </button>
+                      )}
+                    </div>
+                  </div>
+    ))}
 
-              {documents.length > 0 && (
-                <div className="section-title">Uploaded Documents</div>
-              )}
+    <div className="button-group" style={{ display: "flex", gap: "10px", marginTop: "10px" }}>
+      <button
+        type="button"
+        className="add-btn"
+        onClick={handleAddDocumentRow}
+        disabled={saving}
+      >
+        + Add More Row
+      </button>
 
-              {documents.length > 0 && (
-                <div className="table-container">
-                  <table>
-                    <thead>
-                      <tr>
-                        <th>File Name</th>
-                        <th>Type</th>
-                        <th>Description</th>
-                        <th>Action</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {documents.map((doc) => (
-                        <tr key={doc.id}>
-                          <td className="table-cell">{doc.fileName}</td>
-                          <td className="table-cell">
-                            <span className={`badge ${doc.fileType}`}>
-                              {doc.fileType === "image" ? "📷 Image" : "📄 PDF"}
-                            </span>
-                          </td>
-                          <td className="table-cell">{doc.description}</td>
-                          <td className="table-cell">
-                            <button
-                              type="button"
-                              className="delete-btn"
-                              onClick={() => handleDeleteDocument(doc.id)}
-                            >
-                              Delete
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </>
-          )}
-
-          
+     
+    </div>
+    </div>
+    )}
             </div>
           </>
       </div>
     </Layout>
   );
 }
-
 export default AddCallLog;

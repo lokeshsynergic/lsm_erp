@@ -1,16 +1,16 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
-import { Employee } from './entities/employee.entity';
-import { CreateEmployeeDto } from './dto/create-employee.dto';
-import { UpdateEmployeeDto } from './dto/update-employee.dto';
+import { Employee } from '../../hrms/employee/entities/employee.entity';
+import { CreateEmployeeDto } from '../../hrms/employee/dto/create-employee.dto';
+import { UpdateEmployeeDto } from '../../hrms/employee/dto/update-employee.dto';
 import * as fs from 'fs';
 import * as path from 'path';
-import { EmployeeDoc } from './entities/employee-doc.entity'; 
-import { CreateEmployeeDocDto } from './dto/create-employee.dto';
+import { EmployeeDoc } from '../../hrms/employee/entities/employee-doc.entity'; 
+import { CreateEmployeeDocDto } from '../../hrms/employee/dto/create-employee.dto';
 import { Multer } from 'multer';
 import { IsNull } from 'typeorm';
-import { EmployeeAttendance } from './entities/employee-attendance.entity';
+import { EmployeeAttendance } from '../../hrms/employee/entities/employee-attendance.entity';
 
 @Injectable()
 export class EmployeeService {

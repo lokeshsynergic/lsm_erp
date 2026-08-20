@@ -44,7 +44,7 @@ function CustomerList() {
   };
 
   const handleEdit = (id) => {
-    navigate(`/inventory/customer/edit/${id}`);
+    navigate(`/crm/customer/edit/${id}`);
   };
 
   const handleDelete = async (id) => {
@@ -122,10 +122,10 @@ function CustomerList() {
       <div className="department-list-table-wrap">
         <div className="department-list-heading">
           <div>
-            <span>INVENTORY</span>
+            <span>CRM</span>
             <h1>Customers</h1>
           </div>
-          <NavLink to="/inventory/customer/new" className="add-btn">
+          <NavLink to="/crm/customer/new" className="add-btn">
             + Add Customer
           </NavLink>
         </div>

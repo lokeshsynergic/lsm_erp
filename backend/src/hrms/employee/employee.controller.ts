@@ -8,9 +8,10 @@ import {
   Delete,
   HttpCode,
   HttpStatus,
+  UploadedFile,
 } from '@nestjs/common';
 import { UseInterceptors, UploadedFiles } from '@nestjs/common';
-import { FilesInterceptor } from '@nestjs/platform-express';
+import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { EmployeeService } from './employee.service';
 import { CreateEmployeeDto } from './dto/create-employee.dto';
 import { UpdateEmployeeDto } from './dto/update-employee.dto';
@@ -118,4 +119,26 @@ export class EmployeeController {
   async remove(@Param('id') id: string): Promise<void> {
     await this.employeeService.remove(+id);
   }
+
+   
+   //  code For attendance
+
+  @Post('attendance')
+  @UseInterceptors(FileInterceptor('image'))
+  async checkInOut(
+    @UploadedFile() image: Express.Multer.File,
+    @Body() body: any,
+  ) {
+    console.log('📥 Attendance API called');
+    console.log('Body:', body);
+    console.log('Image:', image?.originalname || 'No image');
+
+    return await this.employeeService.checkInOut(
+      body,
+      image,
+    );
+  }
+
+
+
 }

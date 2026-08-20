@@ -13,8 +13,7 @@ class AppConstants {
   static const String mobileRegisterEndpoint = '/auth/register';
   static const String userEndpoint = '/user';
   static const String profileEndpoint = '/user/profile';
-  static const String checkInEndpoint = '/attendance/check-in';
-  static const String checkOutEndpoint = '/attendance/check-out';
+  static const String checkInOutEndpoint = '/emp/attendance';
   static const String clientVisitEndpoint = '/crm/visits';
   static const String notificationsEndpoint = '/notifications';
   static const String reportsEndpoint = '/reports';

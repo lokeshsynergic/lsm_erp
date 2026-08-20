@@ -175,7 +175,7 @@ function CustomerAdd() {
 
     try {
       await saveCustomer(buildPayload(), id);
-      navigate("/inventory/customer");
+      navigate("/crm/customer");
     } catch (err) {
       setError(err.message);
     }
@@ -261,7 +261,7 @@ function CustomerAdd() {
     <Layout>
       <div className="product-add">
         <div className="product-add-breadcrumb">
-          <span>INVENTORY</span>
+          <span>CRM</span>
           <span className="separator">›</span>
           <span>Customer</span>
           <span className="separator">›</span>

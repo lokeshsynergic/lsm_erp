@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:geocoding/geocoding.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../constants/app_colors.dart';
 import '../../constants/app_constants.dart';
 import '../../constants/app_strings.dart';
+import '../../services/api_client.dart';
+import '../../services/attendance_service.dart';
 
 class CheckInOutScreen extends StatefulWidget {
   const CheckInOutScreen({super.key});
@@ -13,23 +17,128 @@ class CheckInOutScreen extends StatefulWidget {
 
 class _CheckInOutScreenState extends State<CheckInOutScreen> {
   bool _isCheckedIn = false;
+  bool _isLoadingLocation = false;
   DateTime? _checkInTime;
   DateTime? _checkOutTime;
-  String _location = 'New York, NY';
+  double _latitude = 0.0;
+  double _longitude = 0.0;
+  String _address = 'New York, NY';
+  String empcode = 'LSM-0123';
+  String type = 'IN';
+  int id = 0;
+  // Example employee code
+  final AttendanceService _attendanceService = AttendanceService(ApiClient());
 
-  void _handleCheckIn() {
-    setState(() {
-      _isCheckedIn = true;
-      _checkInTime = DateTime.now();
-    });
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          'Checked in at ${_checkInTime!.hour}:${_checkInTime!.minute.toString().padLeft(2, '0')}',
+  @override
+  void initState() {
+    super.initState();
+    _getCurrentLocation();
+  }
+
+  // 1. Fetch Location & Geocode Address
+  Future<void> _getCurrentLocation() async {
+    setState(() => _isLoadingLocation = true);
+
+    try {
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        setState(() => _address = 'Location services are disabled.');
+        return;
+      }
+
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          setState(() => _address = 'Location permissions are denied.');
+          return;
+        }
+      }
+
+      if (permission == LocationPermission.deniedForever) {
+        setState(() => _address = 'Location permissions permanently denied.');
+        return;
+      }
+
+      // Fetch Position
+      Position position = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
         ),
-        backgroundColor: AppColors.success,
-      ),
-    );
+      );
+
+      // Fetch Address from Coordinates
+      List<Placemark> placemarks = await placemarkFromCoordinates(
+        position.latitude,
+        position.longitude,
+      );
+
+      String formattedAddress = 'Unknown Address';
+      if (placemarks.isNotEmpty) {
+        final place = placemarks.first;
+        formattedAddress =
+            '${place.street}, ${place.subLocality}, ${place.locality}, ${place.postalCode}';
+      }
+
+      if (mounted) {
+        setState(() {
+          _latitude = position.latitude;
+          _longitude = position.longitude;
+          _address = formattedAddress;
+          _isLoadingLocation = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _address = 'Failed to get location';
+          _isLoadingLocation = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _handleCheckIn() async {
+    try {
+      // Ensure location coordinates are non-zero before proceeding
+      if (_latitude == 0.0 && _longitude == 0.0) {
+        await _getCurrentLocation();
+      }
+
+      final attendance = await _attendanceService.checkIn(
+        id: id,
+        empcode: empcode,
+        type: type,
+        datetime: DateTime.now().toIso8601String(),
+        lat: _latitude,
+        long: _longitude,
+        address: _address,
+        is_out_of_office: 0,
+      );
+
+      if (!mounted) return;
+
+      setState(() {
+        _isCheckedIn = true;
+        _checkInTime = DateTime.now();
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Checked in at '
+            '${_checkInTime!.hour}:'
+            '${_checkInTime!.minute.toString().padLeft(2, '0')}',
+          ),
+          backgroundColor: AppColors.success,
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString()), backgroundColor: AppColors.error),
+      );
+    }
   }
 
   void _handleCheckOut() {
@@ -168,7 +277,7 @@ class _CheckInOutScreenState extends State<CheckInOutScreen> {
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              _location,
+                              _address,
                               style: GoogleFonts.poppins(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w600,

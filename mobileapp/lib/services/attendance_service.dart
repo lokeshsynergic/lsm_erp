@@ -9,19 +9,36 @@ class AttendanceService {
   AttendanceService(this._apiClient);
 
   Future<AttendanceRecord> checkIn({
-    required double latitude,
-    required double longitude,
-    required String location,
+    required double lat,
+    required double long,
+    required String address,
+    required String empcode,
+    required int id,
+    required String type,
+    required String datetime,
+    required int is_out_of_office,
   }) async {
     try {
+      print(
+        'Check-in request: lat=$lat, long=$long, address=$address, empcode=$empcode, id=$id, type=$type, datetime=$datetime, is_out_of_office=$is_out_of_office',
+      );
+
       final response = await _apiClient.post(
-        AppConstants.checkInEndpoint,
+        AppConstants.checkInOutEndpoint,
         data: {
-          'latitude': latitude,
-          'longitude': longitude,
-          'location': location,
+          'id': id,
+          'empcode': empcode,
+          'type': type,
+          'datetime': datetime,
+          'lat': lat.toString(),
+          'long': long.toString(),
+          'address': address,
+          'is_out_of_office': is_out_of_office.toString(),
+          'image': '',
         },
       );
+
+      print('Check-in response: ${response.data}');
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         return AttendanceRecord.fromJson(
@@ -31,7 +48,13 @@ class AttendanceService {
         throw Exception('Check-in failed: ${response.statusCode}');
       }
     } on DioException catch (e) {
+      print('Dio Error Status: ${e.response?.statusCode}');
+      print('Dio Error Response: ${e.response?.data}');
       throw Exception(e.response?.data['message'] ?? 'Check-in failed');
+    } catch (e, stackTrace) {
+      print('Unexpected Error: $e');
+      print('StackTrace: $stackTrace');
+      rethrow;
     }
   }
 
@@ -42,7 +65,7 @@ class AttendanceService {
   }) async {
     try {
       final response = await _apiClient.post(
-        AppConstants.checkOutEndpoint,
+        AppConstants.checkInOutEndpoint,
         data: {
           'latitude': latitude,
           'longitude': longitude,
@@ -65,7 +88,7 @@ class AttendanceService {
   Future<AttendanceRecord> getTodayAttendance() async {
     try {
       final response = await _apiClient.get(
-        '${AppConstants.checkInEndpoint}/today',
+        '${AppConstants.checkInOutEndpoint}/today',
       );
 
       if (response.statusCode == 200) {
@@ -88,7 +111,7 @@ class AttendanceService {
   }) async {
     try {
       final response = await _apiClient.get(
-        '${AppConstants.checkInEndpoint}/history',
+        '${AppConstants.checkInOutEndpoint}/history',
         queryParameters: {'page': page, 'limit': limit},
       );
 

@@ -2,9 +2,9 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { EmployeeService } from './employee.service';
 import { EmployeeController } from './employee.controller';
-import { Employee } from './entities/employee.entity';
-import { EmployeeDoc } from './entities/employee-doc.entity'; // 1. Import entity
-import { EmployeeAttendance } from './entities/employee-attendance.entity';
+import { Employee } from '../../hrms/employee/entities/employee.entity';
+import { EmployeeDoc } from '../../hrms/employee/entities/employee-doc.entity'; // 1. Import entity
+import { EmployeeAttendance } from '../../hrms/employee/entities/employee-attendance.entity';
 
 @Module({
   imports: [
@@ -15,4 +15,4 @@ import { EmployeeAttendance } from './entities/employee-attendance.entity';
   providers: [EmployeeService],
   exports: [EmployeeService],
 })
-export class EmployeeModule {}
+export class MobileEmployeeModule {}
