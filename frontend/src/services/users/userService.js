@@ -12,8 +12,17 @@ export const getAllUsers = () => {
   return apiRequest("GET", "/users");
 };
 
+export const getUserById = (id) => {
+  return apiRequest("GET", `/auth/getuserbyid/${id}`);
+};
 export const getUsersByType = (type) => {
   return apiRequest("GET", `/users/by-type?type=${type}`);
+};
+export const saveUser = (userData, id) => {
+  if (id) {
+    return apiRequest("POST", `/auth/update/${id}`, userData);
+  }
+  return apiRequest("POST", "/users", userData);
 };
 
 export const getPendingApprovals = () => {

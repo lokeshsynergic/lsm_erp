@@ -17,28 +17,37 @@ class AttendanceService {
     required String type,
     required String datetime,
     required int is_out_of_office,
+    String? imagePath, // Accepts local file path instead of Base64
   }) async {
     try {
-      print(
-        'Check-in request: lat=$lat, long=$long, address=$address, empcode=$empcode, id=$id, type=$type, datetime=$datetime, is_out_of_office=$is_out_of_office',
-      );
+      // 1. Prepare FormData payload
+      final Map<String, dynamic> payload = {
+        'id': id.toString(),
+        'empcode': empcode,
+        'type': type,
+        'datetime': datetime,
+        'lat': lat.toString(),
+        'long': long.toString(),
+        'address': address,
+        'is_out_of_office': is_out_of_office.toString(),
+      };
 
+      // 2. Attach File if provided
+      if (imagePath != null && imagePath.isNotEmpty) {
+        payload['image'] = await MultipartFile.fromFile(
+          imagePath,
+          filename:
+              '${type.toLowerCase()}_${DateTime.now().millisecondsSinceEpoch}.jpg',
+        );
+      }
+
+      final formData = FormData.fromMap(payload);
+
+      // 3. Post FormData
       final response = await _apiClient.post(
         AppConstants.checkInOutEndpoint,
-        data: {
-          'id': id,
-          'empcode': empcode,
-          'type': type,
-          'datetime': datetime,
-          'lat': lat.toString(),
-          'long': long.toString(),
-          'address': address,
-          'is_out_of_office': is_out_of_office.toString(),
-          'image': '',
-        },
+        data: formData,
       );
-
-      print('Check-in response: ${response.data}');
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         return AttendanceRecord.fromJson(
@@ -85,23 +94,30 @@ class AttendanceService {
     }
   }
 
-  Future<AttendanceRecord> getTodayAttendance() async {
+  Future<List<dynamic>> getTodayAttendance(String empcode) async {
+    final path = '/emp/attendance/$empcode';
     try {
-      final response = await _apiClient.get(
-        '${AppConstants.checkInOutEndpoint}/today',
-      );
+      print('Sending GET request to path: $path');
+      final response = await _apiClient.get(path);
+      print('Response Status Code: ${response.statusCode}');
+      print('Response Data: ${response.data}');
 
-      if (response.statusCode == 200) {
-        return AttendanceRecord.fromJson(
-          response.data['data'] ?? response.data,
-        );
-      } else {
-        throw Exception('Failed to fetch attendance: ${response.statusCode}');
+      if (response.data is List) {
+        return response.data as List<dynamic>;
+      } else if (response.data is Map && response.data['data'] != null) {
+        return response.data['data'] as List<dynamic>;
       }
+      return [];
     } on DioException catch (e) {
-      throw Exception(
-        e.response?.data['message'] ?? 'Failed to fetch attendance',
-      );
+      print('--- API ERROR LOG ---');
+      print('Requested URL: ${e.requestOptions.uri}');
+      print('Status Code: ${e.response?.statusCode}');
+      print('Response Body: ${e.response?.data}');
+      print('---------------------');
+      rethrow;
+    } catch (e) {
+      print('Unexpected Error: $e');
+      rethrow;
     }
   }
 

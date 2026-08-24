@@ -4,7 +4,7 @@ import "../../styles/department.css";
 import "../../styles/main.css";
 import { getAllUsers } from "../../services/users/userService";
 
-function Users() {
+function Userslist() {
   const [users, setUsers] = useState([]);
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -56,8 +56,8 @@ function Users() {
 
   return (
     <Layout>
-      <div className="department-list">
-        <div className="department-list-heading">
+      <div className="data-list-table-wrap">
+        <div className="data-list-heading">
           <div>
             <span>Admin</span>
             <h1>Users</h1>
@@ -103,7 +103,7 @@ function Users() {
 
         {/* Users Table */}
         {filteredUsers.length > 0 ? (
-          <table className="data-table">
+          <table className="table-container">
             <thead>
               <tr>
                 <th>User ID</th>
@@ -183,4 +183,4 @@ function Users() {
   );
 }
 
-export default Users;
+export default Userslist;

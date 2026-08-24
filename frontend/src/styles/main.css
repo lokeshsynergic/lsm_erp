@@ -252,6 +252,58 @@ table tbody td {
   font-style: italic;
 }
 
+.data-list {
+  padding: 24px;
+}
+
+.data-list-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.data-list-heading span {
+  color: #1c1c1c;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.data-list-heading h1 {
+  margin: 4px 0 0;
+  color: #1c1c1c;
+  font-size: 18px;
+  line-height: 18px;
+}
+
+.data-list-table-wrap {
+  background: #ffffff;
+  border: 1px solid #e0e0e0;
+  border-radius: 16px;
+  padding: 16px 16px;
+  overflow-x: auto;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.04);
+}
+
+.data-list-table-wrap table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.data-list-table-wrap th {
+  text-align: left;
+  padding: 6px 10px;
+  background-color: #f3f4f6;
+  color: #6b6b6b;
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border-bottom: 1px solid #e0e0e0;
+}
+
 /* ============================================ */
 /* RESPONSIVE DESIGN */
 /* ============================================ */

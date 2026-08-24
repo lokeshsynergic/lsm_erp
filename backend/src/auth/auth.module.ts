@@ -4,6 +4,7 @@ import { ConfigService } from '@nestjs/config';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { User } from './entities/user.entity';
+import { Employee } from '../hrms/employee/entities/employee.entity';
 //import { JwtModule } from '@nestjs/jwt';
 
 @Module({
@@ -17,7 +18,7 @@ import { User } from './entities/user.entity';
     //     },
     //   }),
     // }),
-    TypeOrmModule.forFeature([User]),
+    TypeOrmModule.forFeature([User, Employee]),
   ],
   controllers: [AuthController],
   providers: [AuthService],

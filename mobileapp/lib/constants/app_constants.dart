@@ -1,6 +1,6 @@
 class AppConstants {
   // API Configuration
-  static const String baseUrl = 'http://192.168.29.175:3001/mobile';
+  static const String baseUrl = 'http://192.168.0.140:3001/mobile';
   static const String apiVersion = 'v1';
   static const Duration connectTimeout = Duration(seconds: 30);
   static const Duration receiveTimeout = Duration(seconds: 30);
@@ -14,6 +14,7 @@ class AppConstants {
   static const String userEndpoint = '/user';
   static const String profileEndpoint = '/user/profile';
   static const String checkInOutEndpoint = '/emp/attendance';
+  static const String getAttendanceEndpoint = '/emp/getattendance';
   static const String clientVisitEndpoint = '/crm/visits';
   static const String notificationsEndpoint = '/notifications';
   static const String reportsEndpoint = '/reports';

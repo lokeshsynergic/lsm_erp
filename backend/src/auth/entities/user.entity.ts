@@ -44,9 +44,15 @@ export class User {
   @Column({ type: 'text', nullable: true })
   rejection_reason?: string;
 
+  @Column({ type: 'char', length: 1, default: 'O' })
+  work_mode?: string;
+
   @CreateDateColumn({ type: 'timestamp with time zone' })
   created_at?: Date;
 
   @UpdateDateColumn({ type: 'timestamp with time zone' })
   updated_at?: Date;
+
+  @Column({ type: 'int', nullable: true,default: '0' })
+  shift_id?: number;
 }

@@ -1,16 +1,18 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { User } from './entities/user.entity';
 import { LoginDto } from './dto/login.dto';
+import { Employee } from '../hrms/employee/entities/employee.entity';
 
 @Injectable()
 export class AuthService {
   constructor(
     @InjectRepository(User)
     private userRepository: Repository<User>,
+    @InjectRepository(Employee)
+    private employeeRepository: Repository<Employee>,
    //private jwtService: JwtService,
   ) {}
 
@@ -48,7 +50,7 @@ export class AuthService {
     return {
       message: 'Login successful',
       user: userWithoutPassword,
-      // For JWT implementation, add token here:
+    
       // token: this.generateToken(user),
     };
   }
@@ -67,4 +69,25 @@ export class AuthService {
   //     usertype: user.usertype,
   //   });
   // }
+
+  async getUserById(id) {
+        const result = await this.employeeRepository.manager.query(
+          `
+          SELECT 
+            TRIM(CONCAT(COALESCE(e.first_name, ''), ' ', COALESCE(e.middle_name, ''), ' ', COALESCE(e.last_name, ''))) AS name,
+            u.id,
+            u.user_id,
+            u.device_id,
+            u.usertype,
+            u.user_status,
+            u.work_mode,
+            u.shift_id
+          FROM "md_hrms_employee" e
+          LEFT JOIN "td_user" u ON u.user_id = e.emp_code
+          WHERE u.id = $1
+          `,
+          [id]
+        );
+        return result[0] || null;
+    }
 }

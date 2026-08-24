@@ -1,5 +1,5 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../constants/app_colors.dart';
@@ -7,6 +7,11 @@ import '../../constants/app_constants.dart';
 import '../../constants/app_strings.dart';
 import '../../services/api_client.dart';
 import '../../services/attendance_service.dart';
+import 'package:http/http.dart' as http;
+import '../../services/session_manager.dart';
+import 'dart:io';
+import 'package:image_picker/image_picker.dart';
+import 'package:camera/camera.dart';
 
 class CheckInOutScreen extends StatefulWidget {
   const CheckInOutScreen({super.key});
@@ -18,66 +23,200 @@ class CheckInOutScreen extends StatefulWidget {
 class _CheckInOutScreenState extends State<CheckInOutScreen> {
   bool _isCheckedIn = false;
   bool _isLoadingLocation = false;
+  bool _isFetchingStatus = true;
+  bool _isSubmitting = false;
+  bool _isShiftCompleted = false;
+
   DateTime? _checkInTime;
   DateTime? _checkOutTime;
   double _latitude = 0.0;
   double _longitude = 0.0;
-  String _address = 'New York, NY';
-  String empcode = 'LSM-0123';
+  String _address = 'Fetching location...';
+  late String empcode = '';
+  late String workmode = '';
   String type = 'IN';
   int id = 0;
-  // Example employee code
+
   final AttendanceService _attendanceService = AttendanceService(ApiClient());
 
   @override
   void initState() {
     super.initState();
-    _getCurrentLocation();
+    _initialize();
   }
 
-  // 1. Fetch Location & Geocode Address
+  Future<void> _initialize() async {
+    empcode = await SessionManager.getUserId() ?? '';
+    workmode = await SessionManager.getWorkmode() ?? '';
+    await _fetchTodayAttendanceStatus();
+    await _getCurrentLocation();
+  }
+
+  Future<void> _fetchTodayAttendanceStatus() async {
+    try {
+      final List<dynamic> attendanceRecords = await _attendanceService
+          .getTodayAttendance(empcode);
+
+      if (mounted) {
+        if (attendanceRecords.isNotEmpty) {
+          final lastRecord = attendanceRecords.last;
+
+          // Safely parse ID
+          if (lastRecord['id'] is int) {
+            id = lastRecord['id'];
+          } else if (lastRecord['id'] is String) {
+            id = int.tryParse(lastRecord['id']) ?? 0;
+          } else {
+            id = 0;
+          }
+
+          final String? outTimeRaw =
+              lastRecord['outDttime'] ?? lastRecord['outdatetime'];
+          final String? inTimeRaw = lastRecord['indatetime'];
+
+          setState(() {
+            if (inTimeRaw != null && outTimeRaw != null) {
+              // Checked in and checked out -> Shift complete
+              _isCheckedIn = false;
+              _isShiftCompleted = true;
+              _checkInTime = DateTime.tryParse(inTimeRaw);
+              _checkOutTime = DateTime.tryParse(outTimeRaw);
+            } else if (inTimeRaw != null && outTimeRaw == null) {
+              // Currently checked in
+              _isCheckedIn = true;
+              _isShiftCompleted = false;
+              type = 'OUT';
+              _checkInTime = DateTime.tryParse(inTimeRaw);
+            } else {
+              // Default state
+              _isCheckedIn = false;
+              _isShiftCompleted = false;
+              type = 'IN';
+              id = 0;
+            }
+          });
+        } else {
+          // First time opening today (No records found)
+          setState(() {
+            _isCheckedIn = false;
+            _isShiftCompleted = false;
+            type = 'IN';
+            id = 0;
+            _checkInTime = null;
+            _checkOutTime = null;
+          });
+        }
+      }
+    } catch (e) {
+      debugPrint('Error fetching attendance status: $e');
+    } finally {
+      if (mounted) {
+        setState(() => _isFetchingStatus = false);
+      }
+    }
+  }
+
+  Future<String?> _captureFrontCameraSelfie() async {
+    try {
+      final cameras = await availableCameras();
+
+      final frontCamera = cameras.firstWhere(
+        (camera) => camera.lensDirection == CameraLensDirection.front,
+        orElse: () => cameras.first,
+      );
+
+      if (!mounted) return null;
+      final String? imagePath = await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => FrontCameraCaptureScreen(camera: frontCamera),
+        ),
+      );
+
+      return imagePath; // Return the path directly
+    } catch (e) {
+      debugPrint('Error opening front camera: $e');
+      return null;
+    }
+  }
+
   Future<void> _getCurrentLocation() async {
+    if (!mounted) return;
     setState(() => _isLoadingLocation = true);
 
     try {
+      // 1. Check Location Services
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
-        setState(() => _address = 'Location services are disabled.');
+        if (mounted) {
+          setState(() {
+            _address = 'Location services are disabled.';
+            _isLoadingLocation = false;
+          });
+        }
         return;
       }
 
+      // 2. Check Permissions
       LocationPermission permission = await Geolocator.checkPermission();
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
         if (permission == LocationPermission.denied) {
-          setState(() => _address = 'Location permissions are denied.');
+          if (mounted) {
+            setState(() {
+              _address = 'Location permissions are denied.';
+              _isLoadingLocation = false;
+            });
+          }
           return;
         }
       }
 
       if (permission == LocationPermission.deniedForever) {
-        setState(() => _address = 'Location permissions permanently denied.');
+        if (mounted) {
+          setState(() {
+            _address = 'Location permissions permanently denied.';
+            _isLoadingLocation = false;
+          });
+        }
         return;
       }
 
-      // Fetch Position
+      // 3. Get Current Position with Timeout
       Position position = await Geolocator.getCurrentPosition(
         locationSettings: const LocationSettings(
           accuracy: LocationAccuracy.high,
+          timeLimit: Duration(seconds: 10), // Prevents hanging indefinitely
         ),
       );
 
-      // Fetch Address from Coordinates
-      List<Placemark> placemarks = await placemarkFromCoordinates(
-        position.latitude,
-        position.longitude,
-      );
+      // Fallback address formatting in case geocoding fails
+      String formattedAddress =
+          '${position.latitude.toStringAsFixed(4)}, ${position.longitude.toStringAsFixed(4)}';
 
-      String formattedAddress = 'Unknown Address';
-      if (placemarks.isNotEmpty) {
-        final place = placemarks.first;
-        formattedAddress =
-            '${place.street}, ${place.subLocality}, ${place.locality}, ${place.postalCode}';
+      // 4. Reverse Geocode via Google Maps GET Request
+      final Uri
+      url = Uri.https('maps.googleapis.com', '/maps/api/geocode/json', {
+        'latlng': '${position.latitude},${position.longitude}',
+        'key':
+            'AIzaSyCN9yZ4C7lMjLuVt9cb4lfZLp6zT6_SFZM', // Store in AppConstants or .env file
+      });
+
+      final response = await http.get(url);
+      print('Geocoding API response: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> data = jsonDecode(response.body);
+
+        // Safely check if results list exists and is not empty
+        if (data['status'] == 'OK' &&
+            data['results'] != null &&
+            (data['results'] as List).isNotEmpty) {
+          formattedAddress =
+              data['results'][0]['formatted_address'] ?? formattedAddress;
+        } else {
+          debugPrint('Geocoding API status error: ${data['status']}');
+        }
       }
 
       if (mounted) {
@@ -89,6 +228,7 @@ class _CheckInOutScreenState extends State<CheckInOutScreen> {
         });
       }
     } catch (e) {
+      debugPrint('Error getting location: $e');
       if (mounted) {
         setState(() {
           _address = 'Failed to get location';
@@ -98,62 +238,94 @@ class _CheckInOutScreenState extends State<CheckInOutScreen> {
     }
   }
 
-  Future<void> _handleCheckIn() async {
+  Future<void> _handleCheckInOut() async {
+    if (_isSubmitting) return;
+
+    String? imagePath;
+
+    // Trigger camera only for Field mode 'F'
+    if (workmode == 'F') {
+      imagePath = await _captureFrontCameraSelfie();
+
+      if (imagePath == null) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Selfie photo is required for Field work mode.'),
+              backgroundColor: AppColors.error,
+            ),
+          );
+        }
+        return;
+      }
+    }
+
+    setState(() => _isSubmitting = true);
+
     try {
-      // Ensure location coordinates are non-zero before proceeding
       if (_latitude == 0.0 && _longitude == 0.0) {
         await _getCurrentLocation();
       }
 
-      final attendance = await _attendanceService.checkIn(
+      final now = DateTime.now();
+
+      final response = await _attendanceService.checkIn(
         id: id,
         empcode: empcode,
         type: type,
-        datetime: DateTime.now().toIso8601String(),
+        datetime: now.toIso8601String(),
         lat: _latitude,
         long: _longitude,
         address: _address,
         is_out_of_office: 0,
+        imagePath: imagePath, // Pass local file path here
       );
 
       if (!mounted) return;
 
-      setState(() {
-        _isCheckedIn = true;
-        _checkInTime = DateTime.now();
-      });
+      if (type == 'IN') {
+        setState(() {
+          _isCheckedIn = true;
+          _checkInTime = now;
+          type = 'OUT';
+        });
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Checked in at '
-            '${_checkInTime!.hour}:'
-            '${_checkInTime!.minute.toString().padLeft(2, '0')}',
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Checked in at ${now.hour}:${now.minute.toString().padLeft(2, '0')}',
+            ),
+            backgroundColor: AppColors.success,
           ),
-          backgroundColor: AppColors.success,
-        ),
-      );
+        );
+      } else {
+        setState(() {
+          _isCheckedIn = false;
+          _checkOutTime = now;
+          _isShiftCompleted = true;
+          type = 'IN';
+          id = 0;
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Checked out at ${now.hour}:${now.minute.toString().padLeft(2, '0')}',
+            ),
+            backgroundColor: AppColors.success,
+          ),
+        );
+      }
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(e.toString()), backgroundColor: AppColors.error),
       );
+    } finally {
+      if (mounted) {
+        setState(() => _isSubmitting = false);
+      }
     }
-  }
-
-  void _handleCheckOut() {
-    setState(() {
-      _isCheckedIn = false;
-      _checkOutTime = DateTime.now();
-    });
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          'Checked out at ${_checkOutTime!.hour}:${_checkOutTime!.minute.toString().padLeft(2, '0')}',
-        ),
-        backgroundColor: AppColors.success,
-      ),
-    );
   }
 
   @override
@@ -167,192 +339,245 @@ class _CheckInOutScreenState extends State<CheckInOutScreen> {
         elevation: 0,
         backgroundColor: AppColors.background,
       ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Status Card
-              Card(
-                elevation: 2,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(
-                    AppConstants.largeBorderRadius,
-                  ),
-                ),
-                child: Container(
-                  decoration: BoxDecoration(
-                    gradient: _isCheckedIn
-                        ? LinearGradient(
-                            colors: [
-                              AppColors.success,
-                              AppColors.success.withOpacity(0.7),
-                            ],
-                          )
-                        : LinearGradient(
-                            colors: [
-                              AppColors.grey,
-                              AppColors.grey.withOpacity(0.7),
-                            ],
-                          ),
-                    borderRadius: BorderRadius.circular(
-                      AppConstants.largeBorderRadius,
-                    ),
-                  ),
-                  padding: const EdgeInsets.all(30),
-                  child: Column(
-                    children: [
-                      Text(
-                        _isCheckedIn ? AppStrings.checkedIn : 'Not Checked In',
-                        style: GoogleFonts.poppins(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.white,
+      body: _isFetchingStatus
+          ? const Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // Status Card
+                    Card(
+                      elevation: 2,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(
+                          AppConstants.largeBorderRadius,
                         ),
                       ),
-                      const SizedBox(height: 16),
-                      Container(
-                        width: 100,
-                        height: 100,
+                      child: Container(
                         decoration: BoxDecoration(
-                          color: AppColors.white.withOpacity(0.2),
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(
-                          _isCheckedIn ? Icons.check_circle : Icons.schedule,
-                          size: 60,
-                          color: AppColors.white,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      if (_checkInTime != null)
-                        Text(
-                          'Since ${_checkInTime!.hour}:${_checkInTime!.minute.toString().padLeft(2, '0')}',
-                          style: GoogleFonts.poppins(
-                            fontSize: 16,
-                            color: AppColors.white,
+                          gradient: _isCheckedIn
+                              ? LinearGradient(
+                                  colors: [
+                                    AppColors.success,
+                                    AppColors.success.withOpacity(0.7),
+                                  ],
+                                )
+                              : LinearGradient(
+                                  colors: [
+                                    AppColors.grey,
+                                    AppColors.grey.withOpacity(0.7),
+                                  ],
+                                ),
+                          borderRadius: BorderRadius.circular(
+                            AppConstants.largeBorderRadius,
                           ),
                         ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 30),
-              // Location Info
-              Card(
-                elevation: 1,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(
-                    AppConstants.borderRadius,
-                  ),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 50,
-                        height: 50,
-                        decoration: BoxDecoration(
-                          color: AppColors.secondary.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: const Icon(
-                          Icons.location_on_outlined,
-                          color: AppColors.secondary,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
+                        padding: const EdgeInsets.all(30),
                         child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Current Location',
+                              _isCheckedIn
+                                  ? AppStrings.checkedIn
+                                  : 'Not Checked In',
                               style: GoogleFonts.poppins(
-                                fontSize: 12,
-                                color: AppColors.grey,
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.white,
                               ),
                             ),
-                            const SizedBox(height: 4),
-                            Text(
-                              _address,
-                              style: GoogleFonts.poppins(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
+                            const SizedBox(height: 16),
+                            Container(
+                              width: 100,
+                              height: 100,
+                              decoration: BoxDecoration(
+                                color: AppColors.white.withOpacity(0.2),
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(
+                                _isCheckedIn
+                                    ? Icons.check_circle
+                                    : Icons.schedule,
+                                size: 60,
+                                color: AppColors.white,
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            if (_isCheckedIn && _checkInTime != null)
+                              Text(
+                                'Since ${_checkInTime!.hour}:${_checkInTime!.minute.toString().padLeft(2, '0')}',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 16,
+                                  color: AppColors.white,
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 30),
+
+                    // Location Info
+                    Card(
+                      elevation: 1,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(
+                          AppConstants.borderRadius,
+                        ),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 50,
+                              height: 50,
+                              decoration: BoxDecoration(
+                                color: AppColors.secondary.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: const Icon(
+                                Icons.location_on_outlined,
+                                color: AppColors.secondary,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Current Location',
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 12,
+                                      color: AppColors.grey,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  _isLoadingLocation
+                                      ? const SizedBox(
+                                          height: 16,
+                                          width: 16,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                          ),
+                                        )
+                                      : Text(
+                                          _address,
+                                          style: GoogleFonts.poppins(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                ],
                               ),
                             ),
                           ],
                         ),
                       ),
+                    ),
+                    const SizedBox(height: 30),
+
+                    if (_isShiftCompleted) ...[
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: AppColors.success.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(
+                            AppConstants.borderRadius,
+                          ),
+                          border: Border.all(color: AppColors.success),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(
+                              Icons.task_alt,
+                              color: AppColors.success,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              'Shift completed for today',
+                              style: GoogleFonts.poppins(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.success,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ] else ...[
+                      ElevatedButton(
+                        onPressed: _isSubmitting ? null : _handleCheckInOut,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: _isCheckedIn
+                              ? AppColors.error
+                              : AppColors.primary,
+                          padding: const EdgeInsets.symmetric(vertical: 18),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(
+                              AppConstants.borderRadius,
+                            ),
+                          ),
+                        ),
+                        child: _isSubmitting
+                            ? const CircularProgressIndicator(
+                                color: AppColors.white,
+                              )
+                            : Text(
+                                _isCheckedIn
+                                    ? AppStrings.checkOut
+                                    : AppStrings.checkIn,
+                                style: GoogleFonts.poppins(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.white,
+                                ),
+                              ),
+                      ),
                     ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 30),
-              // Check In/Out Button
-              ElevatedButton(
-                onPressed: _isCheckedIn ? _handleCheckOut : _handleCheckIn,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: _isCheckedIn
-                      ? AppColors.error
-                      : AppColors.primary,
-                  padding: const EdgeInsets.symmetric(vertical: 18),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(
-                      AppConstants.borderRadius,
+                    const SizedBox(height: 30),
+
+                    // Today's Summary
+                    Text(
+                      "Today's Summary",
+                      style: GoogleFonts.poppins(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                  ),
-                ),
-                child: Text(
-                  _isCheckedIn ? AppStrings.checkOut : AppStrings.checkIn,
-                  style: GoogleFonts.poppins(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.white,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 30),
-              // Today's Statistics
-              Text(
-                "Today's Summary",
-                style: GoogleFonts.poppins(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildStatCard(
-                      title: 'Check In',
-                      value: _checkInTime != null
-                          ? '${_checkInTime!.hour}:${_checkInTime!.minute.toString().padLeft(2, '0')}'
-                          : '—',
-                      icon: Icons.arrow_downward,
-                      color: AppColors.success,
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _buildStatCard(
+                            title: 'Check In',
+                            value: _checkInTime != null
+                                ? '${_checkInTime!.hour}:${_checkInTime!.minute.toString().padLeft(2, '0')}'
+                                : '—',
+                            icon: Icons.arrow_downward,
+                            color: AppColors.success,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: _buildStatCard(
+                            title: 'Check Out',
+                            value: _checkOutTime != null
+                                ? '${_checkOutTime!.hour}:${_checkOutTime!.minute.toString().padLeft(2, '0')}'
+                                : '—',
+                            icon: Icons.arrow_upward,
+                            color: AppColors.error,
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _buildStatCard(
-                      title: 'Check Out',
-                      value: _checkOutTime != null
-                          ? '${_checkOutTime!.hour}:${_checkOutTime!.minute.toString().padLeft(2, '0')}'
-                          : '—',
-                      icon: Icons.arrow_upward,
-                      color: AppColors.error,
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ],
-          ),
-        ),
-      ),
+            ),
     );
   }
 
@@ -388,6 +613,90 @@ class _CheckInOutScreenState extends State<CheckInOutScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class FrontCameraCaptureScreen extends StatefulWidget {
+  final CameraDescription camera;
+
+  const FrontCameraCaptureScreen({super.key, required this.camera});
+
+  @override
+  State<FrontCameraCaptureScreen> createState() =>
+      _FrontCameraCaptureScreenState();
+}
+
+class _FrontCameraCaptureScreenState extends State<FrontCameraCaptureScreen> {
+  late CameraController _controller;
+  late Future<void> _initializeControllerFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = CameraController(
+      widget.camera,
+      ResolutionPreset.medium,
+      enableAudio: false,
+    );
+    _initializeControllerFuture = _controller.initialize();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      appBar: AppBar(
+        title: const Text('Take Selfie Attendance'),
+        backgroundColor: Colors.black,
+        foregroundColor: Colors.white,
+      ),
+      body: FutureBuilder<void>(
+        future: _initializeControllerFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.done) {
+            return Stack(
+              children: [
+                Positioned.fill(child: CameraPreview(_controller)),
+                Positioned(
+                  bottom: 30,
+                  left: 0,
+                  right: 0,
+                  child: Center(
+                    child: FloatingActionButton(
+                      backgroundColor: Colors.white,
+                      child: const Icon(
+                        Icons.camera_alt,
+                        color: Colors.black,
+                        size: 30,
+                      ),
+                      onPressed: () async {
+                        try {
+                          await _initializeControllerFuture;
+                          final image = await _controller.takePicture();
+                          if (mounted) {
+                            Navigator.pop(context, image.path);
+                          }
+                        } catch (e) {
+                          debugPrint('Failed to capture photo: $e');
+                        }
+                      },
+                    ),
+                  ),
+                ),
+              ],
+            );
+          } else {
+            return const Center(child: CircularProgressIndicator());
+          }
+        },
       ),
     );
   }

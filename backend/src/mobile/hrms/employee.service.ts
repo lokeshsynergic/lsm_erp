@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, DataSource } from 'typeorm';
+import { Repository, DataSource, Between } from 'typeorm';
 import { Employee } from '../../hrms/employee/entities/employee.entity';
 import { CreateEmployeeDto } from '../../hrms/employee/dto/create-employee.dto';
 import { UpdateEmployeeDto } from '../../hrms/employee/dto/update-employee.dto';
@@ -539,5 +539,19 @@ private async uploadAttendanceImage(
     empcode,
     fileName,
   );
-}
+}   
+  async getTodayAttendance(empcode?: string): Promise<EmployeeAttendance[]> {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+
+  return await this.attendanceRepository.find({
+    where: {
+      ...(empcode && { empcode }), // Only filters by empcode if passed
+      indatetime: Between(today, tomorrow),
+    },
+  });
+  }
 }

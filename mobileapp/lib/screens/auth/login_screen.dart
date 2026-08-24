@@ -3,6 +3,11 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../constants/app_colors.dart';
 import '../../constants/app_constants.dart';
 import '../../constants/app_strings.dart';
+import '../../services/auth_service.dart';
+import '../../services/api_client.dart';
+import '../../services/device_service.dart';
+import '../../services/session_manager.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -12,28 +17,58 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final _emailController = TextEditingController();
+  final _userIdController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _deviceIdController = TextEditingController();
+  final AuthService _authService = AuthService(ApiClient());
   bool _obscurePassword = true;
   bool _rememberMe = false;
   bool _isLoading = false;
+  final FlutterSecureStorage _storage = const FlutterSecureStorage();
 
   @override
   void dispose() {
-    _emailController.dispose();
+    _userIdController.dispose();
     _passwordController.dispose();
+    _deviceIdController.dispose();
     super.dispose();
   }
 
-  void _handleLogin() {
-    // Handle login logic
+  void _handleLogin() async {
     setState(() => _isLoading = true);
 
-    Future.delayed(const Duration(seconds: 2), () {
-      setState(() => _isLoading = false);
-      // Navigate to dashboard
+    try {
+      final String deviceId = await DeviceService.getOrCreateDeviceId();
+
+      final result = await _authService.login(
+        userId: _userIdController.text.trim(),
+        password: _passwordController.text,
+        deviceId: deviceId,
+      );
+      print('Login Result: $result');
+      print('Token: ${result['token']}');
+      await SessionManager.saveSession(
+        token: result['token'],
+        user: result['user'],
+      );
+
+      // await _storage.write(key: 'auth_token', value: token);
+
+      if (!mounted) return;
+
+      // Navigate to dashboard after successful login
       Navigator.of(context).pushReplacementNamed('/dashboard');
-    });
+    } catch (error) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(error.toString().replaceAll('Exception: ', ''))),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
   }
 
   @override
@@ -144,13 +179,13 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                             const SizedBox(height: 8),
                             TextField(
-                              controller: _emailController,
+                              controller: _userIdController,
                               decoration: InputDecoration(
                                 hintText: 'E12345',
                                 prefixIcon: const Icon(Icons.badge_outlined),
                                 prefixIconColor: AppColors.primary,
                               ),
-                              keyboardType: TextInputType.emailAddress,
+                              keyboardType: TextInputType.text,
                             ),
                           ],
                         ),

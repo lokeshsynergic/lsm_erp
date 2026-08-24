@@ -1,4 +1,4 @@
-import { Controller, Post, Body, HttpCode, HttpStatus, BadRequestException } from '@nestjs/common';
+import { Controller, Post, Body, HttpCode, HttpStatus, BadRequestException, Get, Param } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
@@ -54,4 +54,31 @@ export class AuthController {
       user: userWithoutPassword,
     };
   }
+
+  @Get('getuserbyid/:id')
+  @HttpCode(HttpStatus.OK)
+  async getUserById(@Param('id') id: string) {
+    return await this.authService.getUserById(id);
+  }
+    
+     @Post('update/:id')
+  @HttpCode(HttpStatus.OK)
+  async updateUser(@Param('id') id: string, @Body() updateData: Partial<User>) {
+    const user = await this.userRepository.findOne({ where: { id: parseInt(id) } });
+    if (!user) {
+      throw new BadRequestException('User not found');
+    }
+    if(updateData.user_status == 'A')
+      updateData.is_approved = true;
+    else if(updateData.user_status == 'I')
+      updateData.is_approved = false; 
+    Object.assign(user, updateData);
+    await this.userRepository.save(user);
+    const { password: _, ...userWithoutPassword } = user;
+    return {
+      message: 'User updated successfully.',
+      user: userWithoutPassword,
+    };
+  }
+
 }

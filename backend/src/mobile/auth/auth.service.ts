@@ -3,48 +3,55 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { User } from '../../auth/entities/user.entity';
-//import { LoginDto } from './dto/login.dto';
+import { LoginDto } from './dto/login.dto';
+import { JwtService } from '@nestjs/jwt';
+
 
 @Injectable()
 export class AuthService {
   constructor(
     @InjectRepository(User)
     private userRepository: Repository<User>,
+    private jwtService: JwtService,
   ) {}
 
-  // async login(loginDto: LoginDto): Promise<any> {
-  //   const { user_id, password } = loginDto;
-
-  //   // Find user by user_id
-  //   const user = await this.userRepository.findOne({
-  //     where: { user_id },
-  //   });
-
-  //   if (!user) {
-  //     throw new UnauthorizedException('Invalid credentials');
-  //   }
-
-  //   // Check if user status is active
-  //   if (user.user_status !== 'A') {
-  //     throw new UnauthorizedException('User account is inactive');
-  //   }
-
-  //   // Verify password using bcrypt
-  //   const isPasswordValid = await bcrypt.compare(password, user.password);
-
-  //   if (!isPasswordValid) {
-  //     throw new UnauthorizedException('Invalid credentials');
-  //   }
-
-  //   // Return user data without password
-  //   const { password: _, ...userWithoutPassword } = user;
-  //   return {
-  //     message: 'Login successful',
-  //     user: userWithoutPassword,
-  //     // For JWT implementation, add token here:
-  //     // token: this.generateToken(user),
-  //   };
-  // }
+  async login(loginDto: LoginDto): Promise<any> {
+      const { user_id, device_id, password } = loginDto;
+  
+      // Find user by user_id
+      const user = await this.userRepository.findOne({
+        where: { user_id , device_id },
+      });
+  
+      if (!user) {
+        throw new UnauthorizedException('Invalid User ID or Device ID');
+      }
+  
+      // Check if user is approved
+      // if (!user.is_approved) {
+      //   throw new UnauthorizedException('Your account is pending admin approval. Please wait for approval.');
+      // }
+  
+      // Check if user status is active
+      if (user.user_status !== 'A') {
+        throw new UnauthorizedException('User account is inactive');
+      }
+  
+      // Verify password using bcrypt
+      const isPasswordValid = await bcrypt.compare(password, user.password);
+  
+      if (!isPasswordValid) {
+        throw new UnauthorizedException('Invalid credentials');
+      }
+  
+      // Return user data without password
+      const { password: _, ...userWithoutPassword } = user;
+      return {
+        message: 'Login successful',
+        user: userWithoutPassword,
+        token: this.generateToken(user),
+      };
+    }
 
   // Helper method to hash password (use when creating/updating users)
   async hashPassword(password: string): Promise<string> {
@@ -52,12 +59,12 @@ export class AuthService {
     return bcrypt.hash(password, salt);
   }
 
-  // TODO: Implement JWT token generation when @nestjs/jwt is installed
-  // private generateToken(user: User): string {
-  //   return this.jwtService.sign({
-  //     sub: user.id,
-  //     user_id: user.user_id,
-  //     usertype: user.usertype,
-  //   });
-  // }
+  
+      private generateToken(user: User): string {
+        return this.jwtService.sign({
+          sub: user.id,
+          user_id: user.user_id,
+          usertype: user.usertype,
+        });
+      }
 }

@@ -33,4 +33,10 @@ export class EmployeeController {
       image,
     );
   }
+
+  @Get('attendance/:empcode')
+  async getTodayAttendance(@Param('empcode') empcode: string) {
+    console.log('📥 Get Today Attendance API called');
+    return await this.employeeService.getTodayAttendance(empcode);
+  }
 }

@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import Layout from "../../components/Layout";
-import "../../styles/department.css";
 import "../../styles/main.css";
 import { getPendingApprovals, approveUser, rejectUser } from "../../services/users/userService";
 
 function UserApprovals() {
+  const navigate = useNavigate();
   const [pendingUsers, setPendingUsers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -31,7 +32,9 @@ function UserApprovals() {
       setLoading(false);
     }
   };
-
+  const handleEdit = (id) => {
+    navigate(`/users/edit/${id}`);
+  };
   const handleApprove = async (userId) => {
     try {
       setError("");
@@ -70,8 +73,8 @@ function UserApprovals() {
 
   return (
     <Layout>
-      <div className="department-list">
-        <div className="department-list-heading">
+      <div className="data-list-table-wrap">
+        <div className="data-list-heading">
           <div>
             <span>Admin</span>
             <h1>Pending User Approvals</h1>
@@ -99,7 +102,7 @@ function UserApprovals() {
 
         {/* Pending Users Table */}
         {pendingUsers.length > 0 ? (
-          <table className="data-table">
+          <table className="table-container">
             <thead>
               <tr>
                 <th>User ID</th>
@@ -137,7 +140,7 @@ function UserApprovals() {
                       </td>
                       <td>
                         <div style={{ display: "flex", gap: "6px" }}>
-                          <button
+                          {/* <button
                             type="button"
                             onClick={() => handleApprove(user.id)}
                             className="action-btn approve-btn"
@@ -153,8 +156,8 @@ function UserApprovals() {
                             }}
                           >
                             Approve
-                          </button>
-                          <button
+                          </button> */}
+                          {/* <button
                             type="button"
                             onClick={() => setRejectingUserId(user.id)}
                             className="action-btn reject-btn"
@@ -170,7 +173,12 @@ function UserApprovals() {
                             }}
                           >
                             Reject
-                          </button>
+                          </button> */}
+                           <button
+                        className="edit-btn"
+                        onClick={() => handleEdit(user.id)}
+                        title="Edit User"
+                      ></button>
                         </div>
                       </td>
                     </tr>

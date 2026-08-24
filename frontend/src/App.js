@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Home from "./pages/Home";
-import About from "./pages/About";
+// import About from "./pages/About";
 import Login from "./pages/Login";
 import Profile from "./pages/Profile";
 import HrmsRoutes from "./routes/HrmsRoutes";
@@ -17,7 +17,7 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/dashboard" element={<Home />} />
         <Route path="/profile" element={<Profile />} />
-        <Route path="/about" element={<About />} />
+        {/* <Route path="/about" element={<About />} /> */}
         <Route path="/hrms/*" element={<HrmsRoutes />} />
         <Route path="/crm/*" element={<CrmRoutes />} />
         <Route path="/users/*" element={<UsersRoutes />} />

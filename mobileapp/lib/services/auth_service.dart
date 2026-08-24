@@ -105,6 +105,31 @@ class AuthService {
     }
   }
 
+  Future<Map<String, dynamic>> login({
+    required String userId,
+    required String password,
+    required String deviceId,
+  }) async {
+    try {
+      final response = await _apiClient.post(
+        AppConstants.loginEndpoint,
+        data: {'user_id': userId, 'device_id': deviceId, 'password': password},
+      );
+
+      // Check for token in response instead of 'status' == true
+      if ((response.statusCode == 200 || response.statusCode == 201) &&
+          response.data['token'] != null) {
+        return response.data;
+      } else {
+        throw Exception(response.data['message'] ?? 'Login failed');
+      }
+    } on DioException catch (e) {
+      throw Exception(
+        e.response?.data['message'] ?? 'Network/Server error during login',
+      );
+    }
+  }
+
   Future<User> getProfile() async {
     try {
       final response = await _apiClient.get(AppConstants.profileEndpoint);

@@ -6,6 +6,7 @@ import { Repository } from 'typeorm';
 import { User } from '../../auth/entities/user.entity';
 import { Employee } from '../../hrms/employee/entities/employee.entity';
 import { QueryBuilder } from 'typeorm/browser';
+import { LoginDto } from './dto/login.dto';
 
 
 @Controller('mobile/auth')
@@ -17,6 +18,12 @@ export class MobileAuthController {
     @InjectRepository(Employee)
     private employeeRepository: Repository<Employee>
   ) {}
+
+   @Post('login')
+    @HttpCode(HttpStatus.OK)
+    async login(@Body() loginDto: LoginDto) {
+      return await this.authService.login(loginDto);
+    }
 
   @Post('register')
   @HttpCode(HttpStatus.CREATED)
