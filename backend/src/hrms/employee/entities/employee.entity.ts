@@ -289,6 +289,13 @@ export class Employee {
   })
   updatedAt?: Date;
 
+  @Column({
+    name: 'branch_id',
+    type: 'integer',
+    default: 1,
+  })
+  branchId?: number;
+
   // 2. Explicitly type doc as EmployeeDoc inside the callback
   @OneToMany('EmployeeDoc', (doc: EmployeeDoc) => doc.employee, {
     cascade: true,

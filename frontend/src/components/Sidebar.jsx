@@ -40,6 +40,7 @@ const menuItems = [
           { label: "Designation", icon: <BadgeCheck size={16} />, to: "/hrms/designation" },
           { label: "Category", icon: <Tags size={16} />, to: "/hrms/category" },
           { label: "Document", icon: <FileText size={16} />, to: "/hrms/document" },
+           { label: "Branch", icon: <Building2 size={16} />, to: "/hrms/branch" },
           { label: "Shift", icon: <Clock3 size={16} />, to: "/hrms/shift" },
           { label: "Employee", icon: <UserRound size={16} />, to: "/hrms/employee" },
         ],

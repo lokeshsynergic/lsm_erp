@@ -11,6 +11,8 @@ import Document from "../pages/hrms/Document";
 import AddDocument from "../pages/hrms/AddDocument";
 import Shift from "../pages/hrms/master/ListShift";
 import AddShift from "../pages/hrms/master/AddShift";
+import ListBranch from "../pages/hrms/branch/ListBranch";
+import AddBranch from "../pages/hrms/branch/AddBranch";
 
 function HrmsRoutes() {
   return (
@@ -30,6 +32,11 @@ function HrmsRoutes() {
       <Route path="/document" element={<Document />} />
       <Route path="/document/new" element={<AddDocument />} />
       <Route path="/document/edit/:id" element={<AddDocument />} />
+
+      <Route path="/branch" element={<ListBranch />} />
+      <Route path="/branch/new" element={<AddBranch />} />
+      <Route path="/branch/edit/:id" element={<AddBranch />} />
+
       <Route path="/shift" element={<Shift />} />
       <Route path="/shift/new" element={<AddShift />} />
       <Route path="/shift/edit/:id" element={<AddShift />} />

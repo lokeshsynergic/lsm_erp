@@ -72,7 +72,25 @@ export const getDocumentById = (id) => {
   return apiRequest("GET", `/master/document/${id}`);
 };
 
-//   Function for Document
+//   Function for Branch
+export const getBranch = (data) => {
+  return apiRequest("GET", "/master/branch", data);
+};
+export const saveBranch = (data, id) => {
+  if (id) {
+    // UPDATE existing branch (PUT /master/branch/4)
+    return apiRequest("PUT", `/master/branch/${id}`, data);
+  } else {
+    // CREATE new branch (POST /master/branch)
+    return apiRequest("POST", "/master/branch", data);
+  }
+};
+
+export const getBranchById = (id) => {
+  return apiRequest("GET", `/master/branch/${id}`);
+};
+
+//   Function for Shift
 export const getShift = (data) => {
   return apiRequest("GET", "/master/shift", data);
 };

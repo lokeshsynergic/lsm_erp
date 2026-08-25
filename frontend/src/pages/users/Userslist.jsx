@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import Layout from "../../components/Layout";
 import "../../styles/department.css";
 import "../../styles/main.css";
 import { getAllUsers } from "../../services/users/userService";
 
 function Userslist() {
+  const navigate = useNavigate();
   const [users, setUsers] = useState([]);
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -19,6 +21,10 @@ function Userslist() {
   useEffect(() => {
     filterUsers();
   }, [users, searchTerm, userTypeFilter]);
+
+   const handleEdit = (id) => {
+    navigate(`/users/edit/${id}`);
+  };
 
   const fetchAllUsers = async () => {
     try {
@@ -112,6 +118,7 @@ function Userslist() {
                 <th>Status</th>
                 <th>Approval</th>
                 <th>Created Date</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -167,6 +174,14 @@ function Userslist() {
                       ? new Date(user.created_at).toLocaleDateString()
                       : "N/A"}
                   </td>
+                  <td>
+                    <button
+                        className="edit-btn"
+                        onClick={() => handleEdit(user.id)}
+                        title="Edit User"
+                      ></button>
+                  </td>
+                  
                 </tr>
               ))}
             </tbody>

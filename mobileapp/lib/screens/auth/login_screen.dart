@@ -24,7 +24,6 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _obscurePassword = true;
   bool _rememberMe = false;
   bool _isLoading = false;
-  final FlutterSecureStorage _storage = const FlutterSecureStorage();
 
   @override
   void dispose() {
@@ -50,9 +49,8 @@ class _LoginScreenState extends State<LoginScreen> {
       await SessionManager.saveSession(
         token: result['token'],
         user: result['user'],
+        googleMapsKey: result['google_maps_key'],
       );
-
-      // await _storage.write(key: 'auth_token', value: token);
 
       if (!mounted) return;
 

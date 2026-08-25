@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:geocoding/geocoding.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../constants/app_colors.dart';
 import '../../constants/app_constants.dart';
@@ -10,6 +9,8 @@ import '../../services/api_client.dart';
 import '../../services/attendance_service.dart';
 import 'package:http/http.dart' as http;
 import '../../services/session_manager.dart';
+import 'dart:io';
+import 'package:image_picker/image_picker.dart';
 import 'package:camera/camera.dart';
 
 class CheckInOutScreen extends StatefulWidget {
@@ -20,15 +21,11 @@ class CheckInOutScreen extends StatefulWidget {
 }
 
 class _CheckInOutScreenState extends State<CheckInOutScreen> {
-  // Office Geofence Coordinates
-
   bool _isCheckedIn = false;
   bool _isLoadingLocation = false;
   bool _isFetchingStatus = true;
   bool _isSubmitting = false;
   bool _isShiftCompleted = false;
-  bool _isInRange = false;
-  double _distanceToOffice = 0.0;
 
   DateTime? _checkInTime;
   DateTime? _checkOutTime;
@@ -39,12 +36,6 @@ class _CheckInOutScreenState extends State<CheckInOutScreen> {
   late String workmode = '';
   String type = 'IN';
   int id = 0;
-  Map<String, dynamic>? user;
-
-  // Declare geofence fields
-  double _officeLat = 0.0;
-  double _officeLng = 0.0;
-  double _allowedRadiusMeters = 1000.0;
 
   final AttendanceService _attendanceService = AttendanceService(ApiClient());
 
@@ -59,13 +50,6 @@ class _CheckInOutScreenState extends State<CheckInOutScreen> {
     workmode = await SessionManager.getWorkmode() ?? '';
     await _fetchTodayAttendanceStatus();
     await _getCurrentLocation();
-    user = await SessionManager.getUser();
-    if (user != null) {
-      _officeLat = double.tryParse(user!['latitude']?.toString() ?? '') ?? 0.0;
-      _officeLng = double.tryParse(user!['longitude']?.toString() ?? '') ?? 0.0;
-      _allowedRadiusMeters =
-          (user!['login_range'] as num?)?.toDouble() ?? 1000.0;
-    }
   }
 
   Future<void> _fetchTodayAttendanceStatus() async {
@@ -77,6 +61,7 @@ class _CheckInOutScreenState extends State<CheckInOutScreen> {
         if (attendanceRecords.isNotEmpty) {
           final lastRecord = attendanceRecords.last;
 
+          // Safely parse ID
           if (lastRecord['id'] is int) {
             id = lastRecord['id'];
           } else if (lastRecord['id'] is String) {
@@ -91,16 +76,19 @@ class _CheckInOutScreenState extends State<CheckInOutScreen> {
 
           setState(() {
             if (inTimeRaw != null && outTimeRaw != null) {
+              // Checked in and checked out -> Shift complete
               _isCheckedIn = false;
               _isShiftCompleted = true;
               _checkInTime = DateTime.tryParse(inTimeRaw);
               _checkOutTime = DateTime.tryParse(outTimeRaw);
             } else if (inTimeRaw != null && outTimeRaw == null) {
+              // Currently checked in
               _isCheckedIn = true;
               _isShiftCompleted = false;
               type = 'OUT';
               _checkInTime = DateTime.tryParse(inTimeRaw);
             } else {
+              // Default state
               _isCheckedIn = false;
               _isShiftCompleted = false;
               type = 'IN';
@@ -108,6 +96,7 @@ class _CheckInOutScreenState extends State<CheckInOutScreen> {
             }
           });
         } else {
+          // First time opening today (No records found)
           setState(() {
             _isCheckedIn = false;
             _isShiftCompleted = false;
@@ -130,6 +119,7 @@ class _CheckInOutScreenState extends State<CheckInOutScreen> {
   Future<String?> _captureFrontCameraSelfie() async {
     try {
       final cameras = await availableCameras();
+
       final frontCamera = cameras.firstWhere(
         (camera) => camera.lensDirection == CameraLensDirection.front,
         orElse: () => cameras.first,
@@ -143,43 +133,10 @@ class _CheckInOutScreenState extends State<CheckInOutScreen> {
         ),
       );
 
-      return imagePath;
+      return imagePath; // Return the path directly
     } catch (e) {
       debugPrint('Error opening front camera: $e');
       return null;
-    }
-  }
-
-  Future<String> getAddressFromCoordinates(
-    double latitude,
-    double longitude,
-  ) async {
-    try {
-      List<Placemark> placemarks = await placemarkFromCoordinates(
-        latitude,
-        longitude,
-      );
-
-      if (placemarks.isNotEmpty) {
-        Placemark place = placemarks.first;
-
-        // Combine address components cleanly
-        String formattedAddress = [
-          place.name,
-          place.subLocality,
-          place.locality,
-          place.administrativeArea,
-          place.postalCode,
-          place.country,
-        ].where((element) => element != null && element.isNotEmpty).join(', ');
-
-        return formattedAddress;
-      } else {
-        return 'No address found for location';
-      }
-    } catch (e) {
-      print('Error fetching address: $e');
-      return 'Failed to fetch address';
     }
   }
 
@@ -188,6 +145,7 @@ class _CheckInOutScreenState extends State<CheckInOutScreen> {
     setState(() => _isLoadingLocation = true);
 
     try {
+      // 1. Check Location Services
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
         if (mounted) {
@@ -199,6 +157,7 @@ class _CheckInOutScreenState extends State<CheckInOutScreen> {
         return;
       }
 
+      // 2. Check Permissions
       LocationPermission permission = await Geolocator.checkPermission();
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
@@ -223,45 +182,40 @@ class _CheckInOutScreenState extends State<CheckInOutScreen> {
         return;
       }
 
+      // 3. Get Current Position with Timeout
       Position position = await Geolocator.getCurrentPosition(
         locationSettings: const LocationSettings(
           accuracy: LocationAccuracy.high,
-          timeLimit: Duration(seconds: 10),
+          timeLimit: Duration(seconds: 10), // Prevents hanging indefinitely
         ),
       );
 
-      // Distance calculation to office coordinates
-      double distance = Geolocator.distanceBetween(
-        _officeLat,
-        _officeLng,
-        position.latitude,
-        position.longitude,
-      );
-
+      // Fallback address formatting in case geocoding fails
       String formattedAddress =
           '${position.latitude.toStringAsFixed(4)}, ${position.longitude.toStringAsFixed(4)}';
 
-      //         String currentAddress = await getAddressFromCoordinates(
-      //   position.latitude,
-      //   position.longitude,
-      // );
-      final apiKey = await SessionManager.getGoogleMapsKey();
-      final Uri url = Uri.https(
-        'maps.googleapis.com',
-        '/maps/api/geocode/json',
-        {'latlng': '${position.latitude},${position.longitude}', 'key': apiKey},
-      );
+      // 4. Reverse Geocode via Google Maps GET Request
+      final Uri
+      url = Uri.https('maps.googleapis.com', '/maps/api/geocode/json', {
+        'latlng': '${position.latitude},${position.longitude}',
+        'key':
+            'AIzaSyCN9yZ4C7lMjLuVt9cb4lfZLp6zT6_SFZM', // Store in AppConstants or .env file
+      });
 
       final response = await http.get(url);
+      print('Geocoding API response: ${response.body}');
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> data = jsonDecode(response.body);
 
+        // Safely check if results list exists and is not empty
         if (data['status'] == 'OK' &&
             data['results'] != null &&
             (data['results'] as List).isNotEmpty) {
           formattedAddress =
               data['results'][0]['formatted_address'] ?? formattedAddress;
+        } else {
+          debugPrint('Geocoding API status error: ${data['status']}');
         }
       }
 
@@ -270,8 +224,6 @@ class _CheckInOutScreenState extends State<CheckInOutScreen> {
           _latitude = position.latitude;
           _longitude = position.longitude;
           _address = formattedAddress;
-          _distanceToOffice = distance;
-          _isInRange = distance <= _allowedRadiusMeters;
           _isLoadingLocation = false;
         });
       }
@@ -289,21 +241,9 @@ class _CheckInOutScreenState extends State<CheckInOutScreen> {
   Future<void> _handleCheckInOut() async {
     if (_isSubmitting) return;
 
-    // Reject check-in if not in Field mode ('F') and user is out of range
-    if (workmode != 'F') {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'You are ${_distanceToOffice.toStringAsFixed(0)}m away. Must be within ${_allowedRadiusMeters.toInt()}m of office.',
-          ),
-          backgroundColor: AppColors.error,
-        ),
-      );
-      return;
-    }
-
     String? imagePath;
 
+    // Trigger camera only for Field mode 'F'
     if (workmode == 'F') {
       imagePath = await _captureFrontCameraSelfie();
 
@@ -337,8 +277,8 @@ class _CheckInOutScreenState extends State<CheckInOutScreen> {
         lat: _latitude,
         long: _longitude,
         address: _address,
-        is_out_of_office: _isInRange ? 0 : 1,
-        imagePath: imagePath,
+        is_out_of_office: 0,
+        imagePath: imagePath, // Pass local file path here
       );
 
       if (!mounted) return;
@@ -388,42 +328,6 @@ class _CheckInOutScreenState extends State<CheckInOutScreen> {
     }
   }
 
-  Widget _buildStatCard({
-    required String title,
-    required String value,
-    required IconData icon,
-    required Color color,
-  }) {
-    return Card(
-      elevation: 1,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppConstants.borderRadius),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            Icon(icon, color: color, size: 24),
-            const SizedBox(height: 8),
-            Text(
-              title,
-              style: GoogleFonts.poppins(fontSize: 12, color: AppColors.grey),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              value,
-              style: GoogleFonts.poppins(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: AppColors.black,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -434,12 +338,6 @@ class _CheckInOutScreenState extends State<CheckInOutScreen> {
         ),
         elevation: 0,
         backgroundColor: AppColors.background,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: _getCurrentLocation,
-          ),
-        ],
       ),
       body: _isFetchingStatus
           ? const Center(child: CircularProgressIndicator())
@@ -476,7 +374,7 @@ class _CheckInOutScreenState extends State<CheckInOutScreen> {
                             AppConstants.largeBorderRadius,
                           ),
                         ),
-                        padding: const EdgeInsets.all(24),
+                        padding: const EdgeInsets.all(30),
                         child: Column(
                           children: [
                             Text(
@@ -489,10 +387,10 @@ class _CheckInOutScreenState extends State<CheckInOutScreen> {
                                 color: AppColors.white,
                               ),
                             ),
-                            const SizedBox(height: 12),
+                            const SizedBox(height: 16),
                             Container(
-                              width: 80,
-                              height: 80,
+                              width: 100,
+                              height: 100,
                               decoration: BoxDecoration(
                                 color: AppColors.white.withOpacity(0.2),
                                 shape: BoxShape.circle,
@@ -501,11 +399,11 @@ class _CheckInOutScreenState extends State<CheckInOutScreen> {
                                 _isCheckedIn
                                     ? Icons.check_circle
                                     : Icons.schedule,
-                                size: 50,
+                                size: 60,
                                 color: AppColors.white,
                               ),
                             ),
-                            const SizedBox(height: 12),
+                            const SizedBox(height: 16),
                             if (_isCheckedIn && _checkInTime != null)
                               Text(
                                 'Since ${_checkInTime!.hour}:${_checkInTime!.minute.toString().padLeft(2, '0')}',
@@ -518,54 +416,9 @@ class _CheckInOutScreenState extends State<CheckInOutScreen> {
                         ),
                       ),
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 30),
 
-                    // Range Status Banner
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        vertical: 14,
-                        horizontal: 16,
-                      ),
-                      decoration: BoxDecoration(
-                        color: _isInRange
-                            ? Colors.green.shade50
-                            : Colors.red.shade50,
-                        borderRadius: BorderRadius.circular(
-                          AppConstants.borderRadius,
-                        ),
-                        border: Border.all(
-                          color: _isInRange ? Colors.green : Colors.red,
-                        ),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            _isInRange ? Icons.near_me : Icons.warning_amber,
-                            color: _isInRange ? Colors.green : Colors.red,
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Text(
-                              _isLoadingLocation
-                                  ? 'Calculating distance to office...'
-                                  : _isInRange
-                                  ? 'Inside office range (${_distanceToOffice.toStringAsFixed(0)}m away)'
-                                  : 'Out of range (${_distanceToOffice.toStringAsFixed(0)}m away / max 200m)',
-                              style: GoogleFonts.poppins(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
-                                color: _isInRange
-                                    ? Colors.green.shade900
-                                    : Colors.red.shade900,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Location Address Card
+                    // Location Info
                     Card(
                       elevation: 1,
                       shape: RoundedRectangleBorder(
@@ -624,9 +477,8 @@ class _CheckInOutScreenState extends State<CheckInOutScreen> {
                         ),
                       ),
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 30),
 
-                    // Check In / Check Out Button
                     if (_isShiftCompleted) ...[
                       Container(
                         padding: const EdgeInsets.all(16),
@@ -658,17 +510,11 @@ class _CheckInOutScreenState extends State<CheckInOutScreen> {
                       ),
                     ] else ...[
                       ElevatedButton(
-                        onPressed:
-                            (_isSubmitting ||
-                                (_isLoadingLocation) ||
-                                (workmode != 'F' && !_isInRange))
-                            ? null
-                            : _handleCheckInOut,
+                        onPressed: _isSubmitting ? null : _handleCheckInOut,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: _isCheckedIn
                               ? AppColors.error
                               : AppColors.primary,
-                          disabledBackgroundColor: Colors.grey.shade400,
                           padding: const EdgeInsets.symmetric(vertical: 18),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(
@@ -681,11 +527,9 @@ class _CheckInOutScreenState extends State<CheckInOutScreen> {
                                 color: AppColors.white,
                               )
                             : Text(
-                                workmode != 'F' && !_isInRange
-                                    ? 'Out of Permissible Range'
-                                    : (_isCheckedIn
-                                          ? AppStrings.checkOut
-                                          : AppStrings.checkIn),
+                                _isCheckedIn
+                                    ? AppStrings.checkOut
+                                    : AppStrings.checkIn,
                                 style: GoogleFonts.poppins(
                                   fontSize: 18,
                                   fontWeight: FontWeight.bold,
@@ -734,6 +578,42 @@ class _CheckInOutScreenState extends State<CheckInOutScreen> {
                 ),
               ),
             ),
+    );
+  }
+
+  Widget _buildStatCard({
+    required String title,
+    required String value,
+    required IconData icon,
+    required Color color,
+  }) {
+    return Card(
+      elevation: 1,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppConstants.borderRadius),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            Icon(icon, color: color, size: 24),
+            const SizedBox(height: 8),
+            Text(
+              title,
+              style: GoogleFonts.poppins(fontSize: 12, color: AppColors.grey),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              value,
+              style: GoogleFonts.poppins(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: AppColors.black,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
