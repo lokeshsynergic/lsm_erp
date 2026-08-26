@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:geocoding/geocoding.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../constants/app_colors.dart';
 import '../../constants/app_constants.dart';
@@ -11,6 +10,7 @@ import '../../services/attendance_service.dart';
 import 'package:http/http.dart' as http;
 import '../../services/session_manager.dart';
 import 'package:camera/camera.dart';
+import '../../services/common_service.dart';
 
 class CheckInOutScreen extends StatefulWidget {
   const CheckInOutScreen({super.key});
@@ -57,8 +57,7 @@ class _CheckInOutScreenState extends State<CheckInOutScreen> {
   Future<void> _initialize() async {
     empcode = await SessionManager.getUserId() ?? '';
     workmode = await SessionManager.getWorkmode() ?? '';
-    await _fetchTodayAttendanceStatus();
-    await _getCurrentLocation();
+
     user = await SessionManager.getUser();
     if (user != null) {
       _officeLat = double.tryParse(user!['latitude']?.toString() ?? '') ?? 0.0;
@@ -66,6 +65,8 @@ class _CheckInOutScreenState extends State<CheckInOutScreen> {
       _allowedRadiusMeters =
           (user!['login_range'] as num?)?.toDouble() ?? 1000.0;
     }
+    await _fetchTodayAttendanceStatus();
+    await _getCurrentLocation();
   }
 
   Future<void> _fetchTodayAttendanceStatus() async {
@@ -93,13 +94,13 @@ class _CheckInOutScreenState extends State<CheckInOutScreen> {
             if (inTimeRaw != null && outTimeRaw != null) {
               _isCheckedIn = false;
               _isShiftCompleted = true;
-              _checkInTime = DateTime.tryParse(inTimeRaw);
-              _checkOutTime = DateTime.tryParse(outTimeRaw);
+              _checkInTime = CommonService.parseServerDateTime(inTimeRaw);
+              _checkOutTime = CommonService.parseServerDateTime(outTimeRaw);
             } else if (inTimeRaw != null && outTimeRaw == null) {
               _isCheckedIn = true;
               _isShiftCompleted = false;
               type = 'OUT';
-              _checkInTime = DateTime.tryParse(inTimeRaw);
+              _checkInTime = CommonService.parseServerDateTime(inTimeRaw);
             } else {
               _isCheckedIn = false;
               _isShiftCompleted = false;
@@ -147,39 +148,6 @@ class _CheckInOutScreenState extends State<CheckInOutScreen> {
     } catch (e) {
       debugPrint('Error opening front camera: $e');
       return null;
-    }
-  }
-
-  Future<String> getAddressFromCoordinates(
-    double latitude,
-    double longitude,
-  ) async {
-    try {
-      List<Placemark> placemarks = await placemarkFromCoordinates(
-        latitude,
-        longitude,
-      );
-
-      if (placemarks.isNotEmpty) {
-        Placemark place = placemarks.first;
-
-        // Combine address components cleanly
-        String formattedAddress = [
-          place.name,
-          place.subLocality,
-          place.locality,
-          place.administrativeArea,
-          place.postalCode,
-          place.country,
-        ].where((element) => element != null && element.isNotEmpty).join(', ');
-
-        return formattedAddress;
-      } else {
-        return 'No address found for location';
-      }
-    } catch (e) {
-      print('Error fetching address: $e');
-      return 'Failed to fetch address';
     }
   }
 
@@ -241,10 +209,6 @@ class _CheckInOutScreenState extends State<CheckInOutScreen> {
       String formattedAddress =
           '${position.latitude.toStringAsFixed(4)}, ${position.longitude.toStringAsFixed(4)}';
 
-      //         String currentAddress = await getAddressFromCoordinates(
-      //   position.latitude,
-      //   position.longitude,
-      // );
       final apiKey = await SessionManager.getGoogleMapsKey();
       final Uri url = Uri.https(
         'maps.googleapis.com',
@@ -290,7 +254,7 @@ class _CheckInOutScreenState extends State<CheckInOutScreen> {
     if (_isSubmitting) return;
 
     // Reject check-in if not in Field mode ('F') and user is out of range
-    if (workmode != 'F') {
+    if (workmode != 'F' && !_isInRange) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -299,7 +263,7 @@ class _CheckInOutScreenState extends State<CheckInOutScreen> {
           backgroundColor: AppColors.error,
         ),
       );
-      return;
+      return; // Block check-in/out for office users who are out of range
     }
 
     String? imagePath;

@@ -3,18 +3,24 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:uuid/uuid.dart';
 
 class DeviceService {
-  static const _storage = FlutterSecureStorage();
-  static const _uuidKey = 'app_device_uuid';
+  static const _storage = FlutterSecureStorage(
+    aOptions: AndroidOptions(encryptedSharedPreferences: true),
+    iOptions: IOSOptions(accessibility: KeychainAccessibility.first_unlock),
+  );
 
-  /// Retrieves an existing device UUID or generates and stores a new one.
+  // UNIFIED KEY NAME
+  static const String uuidKey = 'app_device_uuid';
+
+  /// Retrieves an existing device UUID or generates and stores a new one once per installation.
   static Future<String> getOrCreateDeviceId() async {
-    // Check if UUID already exists in secure storage
-    String? deviceId = await _storage.read(key: _uuidKey);
+    String? deviceId = await _storage.read(key: uuidKey);
 
-    if (deviceId == null) {
-      // Generate new UUID v4
+    if (deviceId == null || deviceId.isEmpty) {
       deviceId = const Uuid().v4();
-      await _storage.write(key: _uuidKey, value: deviceId);
+      await _storage.write(key: uuidKey, value: deviceId);
+      print('New Device ID generated and locked: $deviceId');
+    } else {
+      print('Existing Device ID retrieved: $deviceId');
     }
 
     return deviceId;

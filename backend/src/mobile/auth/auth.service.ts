@@ -5,6 +5,7 @@ import * as bcrypt from 'bcrypt';
 import { User } from '../../auth/entities/user.entity';
 import { LoginDto } from './dto/login.dto';
 import { JwtService } from '@nestjs/jwt';
+import { ConfigService } from '@nestjs/config'; // 1. Import ConfigService
 
 
 @Injectable()
@@ -13,6 +14,7 @@ export class AuthService {
     @InjectRepository(User)
     private userRepository: Repository<User>,
     private jwtService: JwtService,
+    private configService: ConfigService, //
   ) {}
 
   // async login(loginDto: LoginDto): Promise<any> {
@@ -86,14 +88,15 @@ export class AuthService {
   if (!isPasswordValid) {
     throw new UnauthorizedException('Invalid credentials');
   }
-
+      const mapsApiKey = this.configService.get<string>('GOOGLE_MAPS_API_KEY') ?? 'NOT_SET';
+      console.log('GOOGLE_MAPS_API_KEY:', mapsApiKey); // Log the API key to verify it's being read correctly
   // Omit password from output
   const { password: _, ...userWithoutPassword } = rawUser;
 
   return {
     message: 'Login successful',
     user: userWithoutPassword,
-    google_maps_key: process.env.GOOGLE_MAPS_API_KEY,
+    req_app_key: mapsApiKey, // Provide a default value if the environment variable is not set
     token: this.generateToken(userWithoutPassword),
   };
 }

@@ -44,12 +44,10 @@ class _LoginScreenState extends State<LoginScreen> {
         password: _passwordController.text,
         deviceId: deviceId,
       );
-      print('Login Result: $result');
-      print('Token: ${result['token']}');
       await SessionManager.saveSession(
         token: result['token'],
         user: result['user'],
-        googleMapsKey: result['google_maps_key'],
+        googleMapsKey: result['req_app_key'],
       );
 
       if (!mounted) return;

@@ -503,12 +503,21 @@ private async uploadAttendanceImage(
   type: 'in' | 'out',
 ): Promise<string> {
 
-  const uploadPath = path.join(
-    process.cwd(),
-    'uploads',
-    'attendance',
-    empcode,
-  );
+  // const uploadPath = path.join(
+  //   process.cwd(),
+  //   'uploads',
+  //   'attendance',
+  //   empcode,
+  // );
+  const uploadPath = path.resolve(
+  __dirname,
+  '..',
+  '..',
+  '..',
+  'uploads',
+  'attendance',
+  empcode,
+);
 
   if (!fs.existsSync(uploadPath)) {
     fs.mkdirSync(uploadPath, {
