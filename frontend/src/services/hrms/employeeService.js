@@ -31,3 +31,11 @@ export const getEmployeeQualifications = (empCode) => {
 export const getEmployeeExperience = (empCode) => {
   return apiRequest("GET", `/master/emp/${empCode}/experience`);
 };
+
+export const todayattnsumm = () => {
+  return apiRequest("GET", `/master/emp/todayattnsumm`);
+};
+
+export const getLast30DaysAttendance = () => {
+  return apiRequest("GET", `/master/emp/lastthirtydaysattendance`);
+};

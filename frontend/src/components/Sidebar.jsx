@@ -44,7 +44,9 @@ const menuItems = [
           { label: "Shift", icon: <Clock3 size={16} />, to: "/hrms/shift" },
           { label: "Employee", icon: <UserRound size={16} />, to: "/hrms/employee" },
         ],
-      },
+      }
+      ,
+      { label: "Attendance", icon: <Clock3 size={16} />, to: "/hrms/attendance-dashboard" },
     ],
   },
   { label: "Manufacturing", icon: <Building2 size={18} />, hidden: true },

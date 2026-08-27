@@ -1,4 +1,5 @@
 import { Routes, Route } from "react-router-dom";
+import AttendanceDashboard from "../pages/hrms/attendance/attendanceDashboard";
 import EmployeeList from "../pages/hrms/EmployeeList";
 import EmployeeAdd from "../pages/hrms/EmployeeAdd";
 import Department from "../pages/hrms/Department";
@@ -40,6 +41,8 @@ function HrmsRoutes() {
       <Route path="/shift" element={<Shift />} />
       <Route path="/shift/new" element={<AddShift />} />
       <Route path="/shift/edit/:id" element={<AddShift />} />
+
+      <Route path="/attendance-dashboard" element={<AttendanceDashboard />} />
       
 
     </Routes>

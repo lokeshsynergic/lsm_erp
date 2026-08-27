@@ -9,7 +9,7 @@
 .content {
   flex: 1;
   min-width: 0;
-  padding: 20px;
+  padding: 20px 10px 10px 1px;
   color: #2c2630;
   font-family: "Inter", sans-serif;
   font-size: 15px;
