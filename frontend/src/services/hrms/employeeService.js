@@ -39,3 +39,6 @@ export const todayattnsumm = () => {
 export const getLast30DaysAttendance = () => {
   return apiRequest("GET", `/master/emp/lastthirtydaysattendance`);
 };
+export const getusersAttendance = (empCode) => {
+  return apiRequest("GET", `/master/emp/${empCode}/lastthirtydaysattendance`);
+};

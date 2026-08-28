@@ -240,7 +240,9 @@ function AttendanceDashboard() {
                           <div className="user-avatar-circle">
                             {getInitials(user.user_id)}
                           </div>
+                          <a href={`/hrms/attendance/userAttendance/${user.user_id}`} className="user-name-link">
                           <span className="user-name-text">{user.user_id}</span>
+                          </a>
                         </div>
                       </td>
                       {calendarDays.map((day, dIdx) => {
