@@ -25,8 +25,8 @@ export class EmployeeController {
     @Body() body: any,
   ) {
     console.log('📥 Attendance API called');
-    console.log('Body:', body);
-    console.log('Image:', image?.originalname || 'No image');
+   // console.log('Body:', body);
+   // console.log('Image:', image?.originalname || 'No image');
 
     return await this.employeeService.checkInOut(
       body,

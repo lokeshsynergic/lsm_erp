@@ -123,22 +123,34 @@ export class EmployeeController {
    
    //  code For attendance
 
-  @Post('attendance')
-  @UseInterceptors(FileInterceptor('image'))
-  async checkInOut(
-    @UploadedFile() image: Express.Multer.File,
-    @Body() body: any,
-  ) {
-    console.log('📥 Attendance API called');
-    console.log('Body:', body);
-    console.log('Image:', image?.originalname || 'No image');
+  // @Post('attendance')
+  // @UseInterceptors(FileInterceptor('image'))
+  // async checkInOut(
+  //   @UploadedFile() image: Express.Multer.File,
+  //   @Body() body: any,
+  // ) {
+  
+  //  // console.log('Body:', body);
+  //   //console.log('Image:', image?.originalname || 'No image');
 
-    return await this.employeeService.checkInOut(
-      body,
-      image,
-    );
+  //   return await this.employeeService.checkInOut(
+  //     body,
+  //     image,
+  //   );
+  // }
+  // List Of Employee Ontime ,Late ,Field,Absent
+  @Get('todayattnsumm')
+  async getTodayAttendance(): Promise<any> {
+    return await this.employeeService.getTodayAttendanceSummary();
+  }
+  @Get('lastthirtydaysattendance')
+  async getLast30DaysAttendance(): Promise<any> {
+    return await this.employeeService.getLast30DaysAttendance();
   }
 
-
+  @Get(':empCode/lastthirtydaysattendance')
+  async getUsersAttendance(@Param('empCode') empCode: string): Promise<any> {
+    return await this.employeeService.getUsersAttendance(empCode);
+  }
 
 }

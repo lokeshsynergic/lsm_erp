@@ -118,7 +118,6 @@ class AuthService {
         AppConstants.loginEndpoint,
         data: {'user_id': userId, 'device_id': deviceId, 'password': password},
       );
-      print('Login Response Status: ${response.statusCode}');
 
       // Check for token in response instead of 'status' == true
       if ((response.statusCode == 200 || response.statusCode == 201) &&
@@ -149,8 +148,6 @@ class AuthService {
         data: {'user_id': userId, 'device_id': deviceId, 'password': password},
       );
 
-      print('Login Status Code: ${response.statusCode}');
-
       final responseData = response.data is String
           ? jsonDecode(response.data)
           : response.data as Map<String, dynamic>;
@@ -169,7 +166,6 @@ class AuthService {
       print('Response Data Type: ${e.response?.data.runtimeType}');
       print('Raw Response Data: ${e.response?.data}');
       print('Error Message: ${e.message}');
-      print('-----------------------');
 
       dynamic errorData = e.response?.data;
 

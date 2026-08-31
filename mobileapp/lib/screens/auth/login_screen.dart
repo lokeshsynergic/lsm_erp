@@ -7,7 +7,6 @@ import '../../services/auth_service.dart';
 import '../../services/api_client.dart';
 import '../../services/device_service.dart';
 import '../../services/session_manager.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});

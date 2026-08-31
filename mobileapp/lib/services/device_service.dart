@@ -18,7 +18,7 @@ class DeviceService {
     if (deviceId == null || deviceId.isEmpty) {
       deviceId = const Uuid().v4();
       await _storage.write(key: uuidKey, value: deviceId);
-      print('New Device ID generated and locked: $deviceId');
+      //print('New Device ID generated and locked: $deviceId');
     } else {
       print('Existing Device ID retrieved: $deviceId');
     }

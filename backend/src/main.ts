@@ -3,6 +3,8 @@ import { AppModule } from './app.module';
 import { Logger } from '@nestjs/common';
 //import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
+import { join } from 'path/win32';
+import * as express from 'express';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -17,9 +19,11 @@ async function bootstrap() {
   //const configService = app.get(ConfigService);
   //const mapsKey = configService.get<string>('GOOGLE_MAPS_API_KEY');
 
-  // console.log('Current Working Dir:', process.cwd());
-  // console.log('Loaded API Key via ConfigService:', mapsKey);
-  // console.log('Loaded API Key via process.env:', process.env.GOOGLE_MAPS_API_KEY);
+ app.use(
+    '/uploads',
+    express.static(join(process.cwd(), 'uploads')),
+  );
+
   await app.listen(port);
   var pass = bcrypt.hashSync('admin', 10);
   console.log(pass);

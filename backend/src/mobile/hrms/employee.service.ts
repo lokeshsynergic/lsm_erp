@@ -358,22 +358,22 @@ is_out_of_office} = body;
     }
 
     // Check whether employee already has an open record
-    const openAttendance =
-      await this.attendanceRepository.findOne({
-        where: {
-          empcode,
-          outDttime: IsNull(),
-        },
-        order: {
-          indatetime: 'DESC',
-        },
-      });
+    // const openAttendance =
+    //   await this.attendanceRepository.findOne({
+    //     where: {
+    //       empcode,
+    //       outDttime: IsNull(),
+    //     },
+    //     order: {
+    //       indatetime: 'DESC',
+    //     },
+    //   });
 
-    if (openAttendance) {
-      throw new BadRequestException(
-        'Employee already checked in',
-      );
-    }
+    // if (openAttendance) {
+    //   throw new BadRequestException(
+    //     'Employee already checked in',
+    //   );
+    // }
 
     // --------------------------------------------------
     // Upload IN image if provided

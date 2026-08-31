@@ -21,15 +21,25 @@ class AttendanceService {
   }) async {
     try {
       // 1. Prepare FormData payload
+      // final Map<String, dynamic> payload = {
+      //   'id': id.toString(),
+      //   'empcode': empcode,
+      //   'type': type,
+      //   'datetime': datetime,
+      //   'lat': lat.toString(),
+      //   'long': long.toString(),
+      //   'address': address,
+      //   'is_out_of_office': is_out_of_office.toString(),
+      // };
       final Map<String, dynamic> payload = {
-        'id': id.toString(),
+        'id': id,
         'empcode': empcode,
         'type': type,
         'datetime': datetime,
-        'lat': lat.toString(),
-        'long': long.toString(),
+        'lat': lat,
+        'long': long,
         'address': address,
-        'is_out_of_office': is_out_of_office.toString(),
+        'is_out_of_office': is_out_of_office,
       };
 
       // 2. Attach File if provided

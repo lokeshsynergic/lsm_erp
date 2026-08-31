@@ -343,7 +343,7 @@ is_out_of_office} = body;
       'Type must be IN or OUT',
     );
   }
-
+   console.log('📥 checkInOut service called with body:', body);
   const attendanceType = type.toUpperCase();
   // --------------------------------------------------
   // IN
@@ -357,23 +357,7 @@ is_out_of_office} = body;
       );
     }
 
-    // Check whether employee already has an open record
-    const openAttendance =
-      await this.attendanceRepository.findOne({
-        where: {
-          empcode,
-          outDttime: IsNull(),
-        },
-        order: {
-          indatetime: 'DESC',
-        },
-      });
-
-    if (openAttendance) {
-      throw new BadRequestException(
-        'Employee already checked in',
-      );
-    }
+    
 
     // --------------------------------------------------
     // Upload IN image if provided
@@ -540,4 +524,69 @@ private async uploadAttendanceImage(
     fileName,
   );
 }
+    async getTodayAttendanceSummary() {
+    const query = `
+      SELECT
+          COUNT(DISTINCT e.emp_code) AS total_employee,
+          COUNT(DISTINCT e.emp_code) FILTER (
+              WHERE a.indatetime IS NOT NULL
+                AND a.indatetime::time <= s.start_time
+          ) AS total_on_time,
+          COUNT(DISTINCT e.emp_code) FILTER (
+              WHERE a.indatetime IS NOT NULL
+                AND a.indatetime::time > s.start_time
+          ) AS total_late,
+          COUNT(DISTINCT e.emp_code) FILTER (
+              WHERE a.indatetime IS NOT NULL
+                AND a.is_out_of_office = 0
+          ) AS total_out_of_office
+      FROM md_hrms_employee e
+      INNER JOIN td_user u
+          ON e.emp_code = u.user_id
+      LEFT JOIN md_hrms_shift s
+          ON u.shift_id = s.shift_code
+      LEFT JOIN td_hrms_attendance a
+          ON u.user_id = a.empcode
+          AND a.indatetime::date = CURRENT_DATE;
+    `;
+    const result = await this.dataSource.query(query);
+    return result[0];
+  }
+
+  async getLast30DaysAttendance() {
+  const query = `
+    SELECT 
+      empcode AS user_id,
+      indatetime::date::text AS date,
+      CASE 
+        WHEN is_out_of_office = 1 THEN 'out_of_office'
+        WHEN indatetime IS NOT NULL THEN 'present'
+        ELSE 'absent'
+      END AS status
+    FROM td_hrms_attendance
+    WHERE indatetime >= CURRENT_DATE - INTERVAL '30 days'
+      AND indatetime IS NOT NULL;
+  `;
+
+  const result = await this.dataSource.query(query);
+  return result;
+}
+
+  async getUsersAttendance(empCode: string) {
+    const query = `
+      SELECT  
+      empcode AS user_id,indatetime,in_lat,in_long,in_address,in_picture_url,out_dttime,out_lat,out_long,out_address,out_picture_url,
+      indatetime::date::text AS date,
+      CASE 
+        WHEN indatetime IS NOT NULL THEN 'present'
+        ELSE 'absent'
+      END AS status
+    FROM td_hrms_attendance
+    WHERE empcode = $1
+      AND indatetime >= CURRENT_DATE - INTERVAL '30 days';
+  `;
+  const result = await this.dataSource.query(query, [empCode]);
+  return result;
+  }
+
 }

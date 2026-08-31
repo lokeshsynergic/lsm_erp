@@ -59,11 +59,14 @@ class _CheckInOutScreenState extends State<CheckInOutScreen> {
     workmode = await SessionManager.getWorkmode() ?? '';
 
     user = await SessionManager.getUser();
+
     if (user != null) {
       _officeLat = double.tryParse(user!['latitude']?.toString() ?? '') ?? 0.0;
       _officeLng = double.tryParse(user!['longitude']?.toString() ?? '') ?? 0.0;
+
+      // Safely parse login_range whether it comes as int, double, or String
       _allowedRadiusMeters =
-          (user!['login_range'] as num?)?.toDouble() ?? 1000.0;
+          double.tryParse(user!['login_range']?.toString() ?? '') ?? 1000.0;
     }
     await _fetchTodayAttendanceStatus();
     await _getCurrentLocation();
@@ -81,7 +84,7 @@ class _CheckInOutScreenState extends State<CheckInOutScreen> {
           if (lastRecord['id'] is int) {
             id = lastRecord['id'];
           } else if (lastRecord['id'] is String) {
-            id = int.tryParse(lastRecord['id']) ?? 0;
+            id = int.tryParse(lastRecord['id']?.toString() ?? '') ?? 0;
           } else {
             id = 0;
           }
@@ -254,6 +257,7 @@ class _CheckInOutScreenState extends State<CheckInOutScreen> {
     if (_isSubmitting) return;
 
     // Reject check-in if not in Field mode ('F') and user is out of range
+
     if (workmode != 'F' && !_isInRange) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

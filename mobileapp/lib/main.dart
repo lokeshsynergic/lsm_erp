@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-import 'constants/app_constants.dart';
 import 'constants/app_strings.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/auth/register_screen.dart';
