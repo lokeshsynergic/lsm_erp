@@ -106,30 +106,62 @@ class AuthService {
     }
   }
 
+  // Future<Map<String, dynamic>> logins({
+  //   required String userId,
+  //   required String password,
+  //   required String deviceId,
+  // }) async {
+  //   try {
+  //     // data: {'user_id': userId, 'device_id': deviceId, 'password': password}
+  //     print('Attempting login with userId: $userId, deviceId: $deviceId');
+  //     final response = await _apiClient.post(
+  //       AppConstants.loginEndpoint,
+  //       data: {'user_id': userId, 'device_id': deviceId, 'password': password},
+  //     );
+
+  //     // Check for token in response instead of 'status' == true
+  //     if ((response.statusCode == 200 || response.statusCode == 201) &&
+  //         response.data['token'] != null) {
+  //       return response.data;
+  //     } else {
+  //       throw Exception(response.data['message'] ?? 'Login failed');
+  //     }
+  //   } on DioException catch (e) {
+  //     throw Exception(
+  //       e.response?.data['message'] ?? 'Network/Server error during login',
+  //     );
+  //   }
+  // }
+
   Future<Map<String, dynamic>> logins({
     required String userId,
     required String password,
     required String deviceId,
   }) async {
     try {
-      // data: {'user_id': userId, 'device_id': deviceId, 'password': password}
-      print('Attempting login with userId: $userId, deviceId: $deviceId');
+      //print('Attempting login with userId: $userId, deviceId: $deviceId');
       final response = await _apiClient.post(
         AppConstants.loginEndpoint,
         data: {'user_id': userId, 'device_id': deviceId, 'password': password},
       );
 
-      // Check for token in response instead of 'status' == true
       if ((response.statusCode == 200 || response.statusCode == 201) &&
+          response.data is Map &&
           response.data['token'] != null) {
         return response.data;
       } else {
-        throw Exception(response.data['message'] ?? 'Login failed');
+        throw Exception('Login failed');
       }
     } on DioException catch (e) {
-      throw Exception(
-        e.response?.data['message'] ?? 'Network/Server error during login',
-      );
+      String errorMessage = 'Network/Server error during login';
+
+      if (e.response?.data is Map && e.response?.data['message'] != null) {
+        errorMessage = e.response?.data['message'];
+      } else if (e.response?.statusCode == 401) {
+        errorMessage = 'Invalid credentials. Access denied.';
+      }
+
+      throw Exception(errorMessage);
     }
   }
 
