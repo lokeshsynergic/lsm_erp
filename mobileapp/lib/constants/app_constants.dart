@@ -1,7 +1,7 @@
 class AppConstants {
   // API Configuration
-  static const String baseUrl = 'http://192.168.0.140:3001/mobile';
-  // static const String baseUrl = 'https://lsmadminapi.opentech4u.co.in/mobile';
+  //static const String baseUrl = 'http://192.168.0.140:3001/mobile';
+  static const String baseUrl = 'https://lsmadminapi.opentech4u.co.in/mobile';
   static const String apiVersion = 'v1';
   static const Duration connectTimeout = Duration(seconds: 30);
   static const Duration receiveTimeout = Duration(seconds: 30);
