@@ -3,48 +3,44 @@ import { useNavigate } from "react-router-dom";
 import Layout from "../../../components/Layout";
 import "../../../styles/department.css";
 import "../../../styles/main.css";
-import avtrimage from "../../../image/user_sample.jpg";
-import { getEmployeeAttendance } from "../../../services/hrms/employeeService";
+import { getTodayAttendance } from "../../../services/hrms/employeeService";
 
-function UsersAtten() {
+function TodayAttenDetail() {
   const navigate = useNavigate();
   const [users, setUsers] = useState([]);
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [fromDate, setFromDate] = useState("");
-  const [toDate, setToDate] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   useEffect(() => {
     fetchAllUsers();
   }, []);
 
 
-  const empCode = window.location.pathname.split("/").pop();
- 
-  const handleFilterSubmit = async (e) => {
-    e.preventDefault(); 
-    try {
-      setLoading(true);
-      setError("");
-      const data = await getEmployeeAttendance(empCode, fromDate, toDate);
-      console.log("All Users fetched:", data);
-      setUsers(Array.isArray(data) ? data : []);
-      setFilteredUsers(Array.isArray(data) ? data : []);
-    } catch (err) {
-      console.error("Error fetching users:", err);
-      setError(err.message || "Error loading users");
-      setUsers([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  const id = window.location.pathname.split("/").pop();
+  var status = '';
+  switch (id) {
+    case "1":
+      status = "ontime";
+      break;
+    case "2":
+      status = "late";
+      break;
+    case "3":
+      status = "Out of Office";
+      break;
+    case "4":
+      status = "Absent";
+      break;
+    default:
+      status = "";
+  }
+  console.log("id from URL:", id); // Log the extracted ID
   const fetchAllUsers = async () => {
     try {
       setLoading(true);
       setError("");
-      const data = await getEmployeeAttendance(empCode);
+      const data = await getTodayAttendance(id);
       console.log("All Users fetched:", data);
       setUsers(Array.isArray(data) ? data : []);
       setFilteredUsers(Array.isArray(data) ? data : []);
@@ -62,35 +58,8 @@ function UsersAtten() {
       <div className="data-list-table-wrap">
         <div className="data-list-heading">
           <div>
-            <span>Users Daily Attendance <span style={{ color: "blue" }}> CODE: {empCode}</span></span>
-
-             <form className="calendar-filter-form" onSubmit={handleFilterSubmit}>
-    <div className="filter-group">
-      <label htmlFor="fromDate">From:</label>
-      <input
-        type="date"
-        id="fromDate"
-        className="filter-date-input"
-        value={fromDate}
-        onChange={(e) => setFromDate(e.target.value)}
-      />
-    </div>
-
-    <div className="filter-group">
-      <label htmlFor="toDate">To:</label>
-      <input
-        type="date"
-        id="toDate"
-        className="filter-date-input"
-        value={toDate}
-        onChange={(e) => setToDate(e.target.value)}
-      />
-    </div>
-
-    <button type="submit" className="filter-submit-btn">
-      Submit
-    </button>
-  </form>
+            
+            <span style={{ color: "purple" }}>Today {status} Employee </span>
           </div>
         </div>
 
@@ -102,7 +71,7 @@ function UsersAtten() {
             <thead>
               <tr>
                 <th>SL NO</th>
-                <th>Date </th>
+                <th>User </th>
                 <th>In Time</th>
                 <th>In Address</th>
                 <th>In Picture</th>
@@ -115,15 +84,13 @@ function UsersAtten() {
               {filteredUsers.map((user, index) => (
                 <tr key={user.id || index}>
                   <td>{index + 1}</td>
-                  <td> {user.indatetime
-                      ? new Date(user.indatetime).toLocaleDateString()
-                      : "N/A"}</td>
+                  <td> {user.user_id}</td>
                   <td> {user.indatetime
                       ? new Date(user.indatetime).toLocaleTimeString()
                       : "N/A"}</td>
                   <td>{user.in_address}</td>
                   <td><img
-  src={user.in_picture_url ? `${process.env.REACT_APP_API_END_POINT}/${user.in_picture_url}` : avtrimage}
+  src={`${process.env.REACT_APP_API_END_POINT}/${user.in_picture_url}`}
   alt="In" height="50" width="50"
 /></td>
                   <td> {user.out_dttime
@@ -131,7 +98,7 @@ function UsersAtten() {
                       : "N/A"}</td>
                   <td>{user.out_address}</td>
                   <td><img
-  src={user.out_picture_url ? `${process.env.REACT_APP_API_END_POINT}/${user.out_picture_url}` : avtrimage}
+  src={`${process.env.REACT_APP_API_END_POINT}/${user.out_picture_url}`}
   alt="Out" height="50" width="50"
 /></td>
                 </tr>
@@ -150,4 +117,4 @@ function UsersAtten() {
   );
 }
 
-export default UsersAtten;
+export default TodayAttenDetail;

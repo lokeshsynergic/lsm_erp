@@ -9,6 +9,8 @@ import {
   HttpCode,
   HttpStatus,
   UploadedFile,
+  Query,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { UseInterceptors, UploadedFiles } from '@nestjs/common';
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
@@ -121,24 +123,6 @@ export class EmployeeController {
   }
 
    
-   //  code For attendance
-
-  // @Post('attendance')
-  // @UseInterceptors(FileInterceptor('image'))
-  // async checkInOut(
-  //   @UploadedFile() image: Express.Multer.File,
-  //   @Body() body: any,
-  // ) {
-  
-  //  // console.log('Body:', body);
-  //   //console.log('Image:', image?.originalname || 'No image');
-
-  //   return await this.employeeService.checkInOut(
-  //     body,
-  //     image,
-  //   );
-  // }
-  // List Of Employee Ontime ,Late ,Field,Absent
   @Get('todayattnsumm')
   async getTodayAttendance(): Promise<any> {
     return await this.employeeService.getTodayAttendanceSummary();
@@ -147,10 +131,30 @@ export class EmployeeController {
   async getLast30DaysAttendance(): Promise<any> {
     return await this.employeeService.getLast30DaysAttendance();
   }
+  @Get('attendance-range')
+    async getAttendanceByDateRange(
+      @Query('fromDate') fromDate?: string,
+      @Query('toDate') toDate?: string,
+    ): Promise<any> {
+      return await this.employeeService.getAttendanceByDateRange(fromDate, toDate);
+  }
 
-  @Get(':empCode/lastthirtydaysattendance')
-  async getUsersAttendance(@Param('empCode') empCode: string): Promise<any> {
-    return await this.employeeService.getUsersAttendance(empCode);
+  @Get(':empCode/attendance')
+async getEmployeeAttendance(
+  @Param('empCode') empCode: string,
+  @Query('fromDate') fromDate?: string,
+  @Query('toDate') toDate?: string,
+): Promise<any> {
+  return await this.employeeService.getEmployeeAttendance(empCode, fromDate, toDate);
+}
+
+  @Get('attendance/:id')
+  async getAttendanceByStatus(
+    @Param('id', ParseIntPipe) statusId: number,
+    @Query('date') date?: string,
+  ): Promise<any> {
+    const targetDate = date || new Date().toISOString().split('T')[0];
+    return await this.employeeService.getAttendanceByStatus(statusId, targetDate);
   }
 
 }

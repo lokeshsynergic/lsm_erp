@@ -5,7 +5,7 @@ import Layout from "../../../components/Layout";
 import "../../../styles/department.css";
 import "../../../styles/main.css";
 import "../../../styles/attendanceDashboard.css";
-import { todayattnsumm, getLast30DaysAttendance } from "../../../services/hrms/employeeService";
+import { todayattnsumm, getLast30DaysAttendance,getAttendanceByDateRange } from "../../../services/hrms/employeeService";
 import { getAllUsers } from "../../../services/users/userService";
 
 function AttendanceDashboard() {
@@ -14,6 +14,12 @@ function AttendanceDashboard() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [calendarDays, setCalendarDays] = useState([]);
+  const [fromDate, setFromDate] = useState(() => {
+    const d = new Date();
+    d.setDate(d.getDate() - 29);
+    return d.toISOString().split("T")[0];
+  });
+  const [toDate, setToDate] = useState(() => new Date().toISOString().split("T")[0]);
 
   // Map to store 30-day attendance lookup: key = `${user_id}_${dateStr}`
   const [attendanceMap, setAttendanceMap] = useState({});
@@ -30,6 +36,20 @@ function AttendanceDashboard() {
     fetchAllUsers();
     fetchAttendanceRecords();
   }, []);
+  // 3. Initial Load
+useEffect(() => {
+  generateCalendarDays(fromDate, toDate);
+  fetchAllUsers();
+  fetchAttendanceRecords();
+  fetchSummaryData();
+}, []);
+
+// 4. Handle Filter Submit
+const handleFilterSubmit = (e) => {
+  e.preventDefault();
+  generateCalendarDays(fromDate, toDate);
+  fetchAttendanceRecords(); // Pass fromDate/toDate to API if backend supports range filtering
+};
 
   const fetchAllUsers = async () => {
     try {
@@ -47,20 +67,53 @@ function AttendanceDashboard() {
   };
 
   // Fetch 30-day attendance records and create hash map
+  // const fetchAttendanceRecords = async () => {
+  //   try {
+  //     const data = await getLast30DaysAttendance();
+  //     if (Array.isArray(data)) {
+  //       const map = {};
+  //       data.forEach((item) => {
+  //         map[`${item.user_id}_${item.date}`] = item.status;
+  //       });
+  //       setAttendanceMap(map);
+  //     }
+  //   } catch (err) {
+  //     console.error("Error fetching 30-day attendance records:", err);
+  //   }
+  // };
+
   const fetchAttendanceRecords = async () => {
-    try {
-      const data = await getLast30DaysAttendance();
-      if (Array.isArray(data)) {
-        const map = {};
-        data.forEach((item) => {
-          map[`${item.user_id}_${item.date}`] = item.status;
-        });
-        setAttendanceMap(map);
-      }
-    } catch (err) {
-      console.error("Error fetching 30-day attendance records:", err);
+  try {
+    const data = await getAttendanceByDateRange(fromDate, toDate);
+    if (Array.isArray(data)) {
+      const map = {};
+      data.forEach((item) => {
+        map[`${item.user_id}_${item.date}`] = item.status;
+      });
+      setAttendanceMap(map);
     }
-  };
+  } catch (err) {
+    console.error("Error fetching attendance records:", err);
+  }
+};
+
+  const generateCalendarDays = (startStr, endStr) => {
+  const days = [];
+  const start = new Date(startStr);
+  const end = new Date(endStr);
+
+  for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+    const current = new Date(d);
+    days.push({
+      dateObj: current,
+      dayNum: current.getDate(),
+      dayName: current.toLocaleDateString("en-US", { weekday: "narrow" }),
+      dateStr: current.toISOString().split("T")[0],
+      isWeekend: current.getDay() === 0, // Sunday only
+    });
+  }
+  setCalendarDays(days);
+};
 
   // Generate last 30 days dates dynamically
   useEffect(() => {
@@ -74,7 +127,8 @@ function AttendanceDashboard() {
         dayNum: d.getDate(),
         dayName: d.toLocaleDateString("en-US", { weekday: "narrow" }),
         dateStr: d.toISOString().split("T")[0],
-        isWeekend: d.getDay() === 0 || d.getDay() === 6,
+       // isWeekend: d.getDay() === 0 || d.getDay() === 6,
+        isWeekend: d.getDay() === 0,
       });
     }
     setCalendarDays(days);
@@ -204,7 +258,7 @@ function AttendanceDashboard() {
                     </div>
                   </div>
                   <div className="metric-footer">
-                    <span>{item.status}</span>
+                    <a href={`/hrms/attendance/todayattedetail/${item.id}`}> <span>{item.status}</span> </a>
                   </div>
                 </div>
               );
@@ -216,6 +270,33 @@ function AttendanceDashboard() {
         <div className="calendar-card-container">
           <div className="calendar-header-toolbar">
             <h2 className="calendar-title">Team Calendar (Last 30 Days)</h2>
+            <form className="calendar-filter-form" onSubmit={handleFilterSubmit}>
+    <div className="filter-group">
+      <label htmlFor="fromDate">From:</label>
+      <input
+        type="date"
+        id="fromDate"
+        className="filter-date-input"
+        value={fromDate}
+        onChange={(e) => setFromDate(e.target.value)}
+      />
+    </div>
+
+    <div className="filter-group">
+      <label htmlFor="toDate">To:</label>
+      <input
+        type="date"
+        id="toDate"
+        className="filter-date-input"
+        value={toDate}
+        onChange={(e) => setToDate(e.target.value)}
+      />
+    </div>
+
+    <button type="submit" className="filter-submit-btn">
+      Submit
+    </button>
+  </form>
           </div>
 
           <div className="calendar-scroll-wrapper">

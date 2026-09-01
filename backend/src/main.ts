@@ -1,34 +1,31 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { Logger } from '@nestjs/common';
-//import { ConfigService } from '@nestjs/config';
+import { NestExpressApplication } from '@nestjs/platform-express';
 import * as bcrypt from 'bcrypt';
-import { join } from 'path/win32';
-import * as express from 'express';
+import { join } from 'path'; // Standard path import for all OS platforms
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
-  // await app.listen(process.env.PORT ?? 3000);
-  // const url = await app.getUrl();
+  // Pass NestExpressApplication generic so TypeScript recognizes useStaticAssets
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+
   app.enableCors({
-    origin: true, // Allows requests from any origin during development
+    origin: true,
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     credentials: true,
   });
+
+  const uploadDir = join(__dirname,'..', 'uploads');
+  app.useStaticAssets(uploadDir, {
+    prefix: '/uploads',
+  });
+
   const port = process.env.PORT || process.env.APP_PORT || 3000;
-  //const configService = app.get(ConfigService);
-  //const mapsKey = configService.get<string>('GOOGLE_MAPS_API_KEY');
-
- app.use(
-    '/uploads',
-    express.static(join(process.cwd(), 'uploads')),
-  );
-
   await app.listen(port);
-  var pass = bcrypt.hashSync('admin', 10);
+
+  const pass = bcrypt.hashSync('admin', 10);
   console.log(pass);
-  
-  // Clean NestJS-formatted log:
+
   Logger.log(`Application is running on: http://localhost:${port}`, 'Bootstrap');
 }
 bootstrap();

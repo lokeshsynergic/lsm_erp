@@ -39,6 +39,27 @@ export const todayattnsumm = () => {
 export const getLast30DaysAttendance = () => {
   return apiRequest("GET", `/master/emp/lastthirtydaysattendance`);
 };
-export const getusersAttendance = (empCode) => {
-  return apiRequest("GET", `/master/emp/${empCode}/lastthirtydaysattendance`);
+export const getTodayAttendance = (id) => {
+  return apiRequest("GET", `/master/emp/attendance/${id}`);
+};
+export const getAttendanceByDateRange = async (fromDate, toDate) => {
+  const response = await apiRequest("GET", `/master/emp/attendance-range`, {
+    fromDate,
+    toDate,
+  });
+  return response;
+};
+export const getEmployeeAttendance = (
+  empCode,
+  fromDate = null,
+  toDate = null,
+) => {
+  let url = `/master/emp/${empCode}/attendance`;
+
+  if (fromDate && toDate) {
+    const query = new URLSearchParams({ fromDate, toDate }).toString();
+    url += `?${query}`;
+  }
+
+  return apiRequest("GET", url);
 };

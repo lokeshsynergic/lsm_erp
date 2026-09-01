@@ -553,40 +553,161 @@ private async uploadAttendanceImage(
     return result[0];
   }
 
+//   async getLast30DaysAttendance() {
+//   const query = `
+//     SELECT 
+//       empcode AS user_id,
+//       indatetime::date::text AS date,
+//       CASE 
+//         WHEN is_out_of_office = 1 THEN 'out_of_office'
+//         WHEN indatetime IS NOT NULL THEN 'present'
+//         ELSE 'absent'
+//       END AS status
+//     FROM td_hrms_attendance
+//     WHERE indatetime >= CURRENT_DATE - INTERVAL '30 days'
+//       AND indatetime IS NOT NULL;
+//   `;
+
+//   const result = await this.dataSource.query(query);
+//   return result;
+// }   
+
   async getLast30DaysAttendance() {
   const query = `
     SELECT 
-      empcode AS user_id,
-      indatetime::date::text AS date,
+      a.empcode AS user_id,
+      a.indatetime::date::text AS date,
       CASE 
-        WHEN is_out_of_office = 1 THEN 'out_of_office'
-        WHEN indatetime IS NOT NULL THEN 'present'
+        WHEN a.is_out_of_office = 1 THEN 'out_of_office'
+        WHEN a.indatetime IS NOT NULL AND a.indatetime::time > s.start_time THEN 'late'
+        WHEN a.indatetime IS NOT NULL THEN 'present'
         ELSE 'absent'
       END AS status
-    FROM td_hrms_attendance
-    WHERE indatetime >= CURRENT_DATE - INTERVAL '30 days'
-      AND indatetime IS NOT NULL;
+    FROM td_hrms_attendance a
+    INNER JOIN td_user u 
+      ON a.empcode = u.user_id
+    LEFT JOIN md_hrms_shift s 
+      ON u.shift_id = s.shift_code
+    WHERE a.indatetime >= CURRENT_DATE - INTERVAL '30 days'
+      AND a.indatetime IS NOT NULL;
   `;
 
   const result = await this.dataSource.query(query);
   return result;
 }
 
-  async getUsersAttendance(empCode: string) {
-    const query = `
-      SELECT  
-      empcode AS user_id,indatetime,in_lat,in_long,in_address,in_picture_url,out_dttime,out_lat,out_long,out_address,out_picture_url,
-      indatetime::date::text AS date,
+   async getAttendanceByDateRange(fromDate?: string, toDate?: string) {
+  // Fallbacks: default to date range if not passed
+  const defaultToDate = new Date().toISOString().split('T')[0];
+  const defaultFromDate = new Date(Date.now() - 29 * 24 * 60 * 60 * 1000)
+    .toISOString()
+    .split('T')[0];
+
+  const startDate = fromDate || defaultFromDate;
+  const endDate = toDate || defaultToDate;
+
+  const query = `
+    SELECT 
+      a.empcode AS user_id,
+      a.indatetime::date::text AS date,
       CASE 
-        WHEN indatetime IS NOT NULL THEN 'present'
+        WHEN a.is_out_of_office = 1 THEN 'out_of_office'
+        WHEN a.indatetime IS NOT NULL AND a.indatetime::time > s.start_time THEN 'late'
+        WHEN a.indatetime IS NOT NULL THEN 'present'
         ELSE 'absent'
       END AS status
-    FROM td_hrms_attendance
-    WHERE empcode = $1
-      AND indatetime >= CURRENT_DATE - INTERVAL '30 days';
+    FROM td_hrms_attendance a
+    INNER JOIN td_user u 
+      ON a.empcode = u.user_id
+    LEFT JOIN md_hrms_shift s 
+      ON u.shift_id = s.shift_code
+    WHERE a.indatetime::date >= $1::date
+      AND a.indatetime::date <= $2::date
+      AND a.indatetime IS NOT NULL;
   `;
-  const result = await this.dataSource.query(query, [empCode]);
+
+  const result = await this.dataSource.query(query, [startDate, endDate]);
   return result;
-  }
+}
+
+  async getEmployeeAttendance(empCode: string, fromDate?: string, toDate?: string) {
+  const hasDateRange = fromDate && toDate;
+  console.log('📅 getEmployeeAttendance called with:', { empCode, fromDate, toDate, hasDateRange });
+  const query = `
+    SELECT 
+      a.empcode AS user_id,
+      a.indatetime::date::text AS date,
+      a.indatetime,
+      a.in_lat,
+      a.in_long,
+      a.in_address,
+      a.in_picture_url,
+      a.out_dttime,
+      a.out_lat,
+      a.out_long,
+      a.out_address,
+      a.out_picture_url,
+      CASE 
+        WHEN a.is_out_of_office = 1 THEN 'out_of_office'
+        WHEN a.indatetime IS NOT NULL AND a.indatetime::time > s.start_time THEN 'late'
+        WHEN a.indatetime IS NOT NULL THEN 'present'
+        ELSE 'absent'
+      END AS status
+    FROM td_hrms_attendance a
+    INNER JOIN td_user u 
+      ON a.empcode = u.user_id
+    LEFT JOIN md_hrms_shift s 
+      ON u.shift_id = s.shift_code
+    WHERE a.empcode = $1
+      AND (
+        (${hasDateRange ? '1=1' : '1=0'} AND a.indatetime::date BETWEEN $2::date AND $3::date)
+        OR 
+        (${hasDateRange ? '1=0' : '1=1'} AND a.indatetime >= CURRENT_DATE - INTERVAL '30 days')
+      )
+      AND a.indatetime IS NOT NULL;
+  `;
+
+  const parameters = hasDateRange 
+    ? [empCode, fromDate, toDate] 
+    : [empCode, null, null];
+
+  return await this.dataSource.query(query, parameters);
+}
+
+ async getAttendanceByStatus(statusId: number, targetDate: string) {
+  const query = `
+    SELECT 
+      u.user_id,
+      a.indatetime,
+      a.in_lat,
+      a.in_long,
+      a.in_address,
+      a.in_picture_url,
+      a.out_dttime,
+      a.out_lat,
+      a.out_long,
+      a.out_address,
+      a.out_picture_url,
+      CASE 
+        WHEN a.is_out_of_office = 1 THEN 'out_of_office'
+        WHEN a.indatetime IS NOT NULL AND a.indatetime::time > s.start_time THEN 'late'
+        WHEN a.indatetime IS NOT NULL THEN 'present'
+        ELSE 'absent'
+      END AS status
+    FROM td_user u
+    LEFT JOIN md_hrms_shift s 
+      ON u.shift_id::text = s.shift_code::text
+    LEFT JOIN td_hrms_attendance a 
+      ON u.user_id::text = a.empcode::text 
+     AND a.indatetime::date = $1::date
+    WHERE 
+      ($2::int = 1 AND a.indatetime IS NOT NULL AND (a.is_out_of_office IS NULL OR a.is_out_of_office != 1) AND a.indatetime::time <= s.start_time)
+      OR ($2::int = 2 AND a.indatetime IS NOT NULL AND (a.is_out_of_office IS NULL OR a.is_out_of_office != 1) AND a.indatetime::time > s.start_time)
+      OR ($2::int = 3 AND a.is_out_of_office = 1)
+      OR ($2::int = 4 AND a.indatetime IS NULL AND (a.is_out_of_office IS NULL OR a.is_out_of_office != 1));
+  `;
+
+  return await this.dataSource.query(query, [targetDate, Number(statusId)]);
+}
 
 }
