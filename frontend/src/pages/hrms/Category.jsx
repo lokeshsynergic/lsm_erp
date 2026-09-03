@@ -42,7 +42,6 @@ function Category() {
             + Add Category
           </NavLink>
         </div>
-
         <div className="table-container">
           <table>
             <thead>
@@ -63,7 +62,6 @@ function Category() {
                       className="edit-btn"
                       onClick={() => handleEdit(category.cat_id)}
                     >
-                      
                     </button>
                   </td>
                 </tr>

@@ -1,24 +1,24 @@
 class AppConstants {
   // API Configuration
-  static const String baseUrl = 'http://192.168.0.140:3001/mobile';
-  // static const String baseUrl = 'https://lsmadminapi.opentech4u.co.in/mobile';
+  static const String baseUrl = 'http://192.168.0.140:3001/';
+  // static const String baseUrl = 'https://lsmadminapi.opentech4u.co.in/';
   static const String apiVersion = 'v1';
   static const Duration connectTimeout = Duration(seconds: 30);
   static const Duration receiveTimeout = Duration(seconds: 30);
 
   // Endpoints
-  static const String authEndpoint = '/auth';
-  static const String loginEndpoint = '/auth/login';
-  static const String registerEndpoint = '/auth/register';
-  static const String checkUserEndpoint = '/auth/checkuser';
-  static const String mobileRegisterEndpoint = '/auth/register';
-  static const String userEndpoint = '/user';
-  static const String profileEndpoint = '/user/profile';
-  static const String checkInOutEndpoint = '/emp/attendance';
-  static const String getAttendanceEndpoint = '/emp/getattendance';
-  static const String clientVisitEndpoint = '/crm/visits';
-  static const String notificationsEndpoint = '/notifications';
-  static const String reportsEndpoint = '/reports';
+  static const String authEndpoint = 'mobile/auth';
+  static const String loginEndpoint = 'mobile/auth/login';
+  static const String registerEndpoint = 'mobile/auth/register';
+  static const String checkUserEndpoint = 'mobile/auth/checkuser';
+  static const String mobileRegisterEndpoint = 'mobile/auth/register';
+  static const String userEndpoint = 'mobile/user';
+  static const String profileEndpoint = 'mobile/user/profile';
+  static const String checkInOutEndpoint = 'mobile/emp/attendance';
+  static const String getAttendanceEndpoint = 'mobile/emp/attendance';
+  static const String clientVisitEndpoint = 'mobile/meeting-visit';
+  static const String notificationsEndpoint = 'mobile/notifications';
+  static const String reportsEndpoint = 'mobile/reports';
 
   // Storage Keys
   static const String tokenKey = 'auth_token';

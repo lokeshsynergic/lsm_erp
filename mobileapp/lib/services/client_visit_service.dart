@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:dio/dio.dart';
 import '../constants/app_constants.dart';
 import '../models/client_visit_model.dart';
@@ -9,7 +11,11 @@ class ClientVisitService {
   ClientVisitService(this._apiClient);
 
   Future<ClientVisit> createVisit({
+    required String salesRepId,
     required String clientName,
+    required String contactPerson,
+    required String phone,
+    required String email,
     required String clientId,
     required String location,
     required double latitude,
@@ -17,22 +23,56 @@ class ClientVisitService {
     required DateTime visitDate,
     required DateTime visitTime,
     required String purpose,
+    required double expectedValue,
     String? notes,
+    String? meetPersonDesig,
+    File? visitingCardImage, // Added File parameter
+    File? selfieImage, // Added File parameter
   }) async {
     try {
+      final Map<String, dynamic> dataMap = {
+        'salesRepId': salesRepId,
+        'companyName': clientName,
+        'contactPerson': contactPerson,
+        'phone': phone,
+        'email': email,
+        'clientId': clientId,
+        'location': location,
+        'checkInLat': latitude,
+        'checkInLong': longitude,
+        'latitude': latitude,
+        'longitude': longitude,
+        'checkOutLat': latitude,
+        'checkOutLong': longitude,
+        'visitDate': visitDate.toIso8601String(),
+        'visitTime': visitTime.toIso8601String(),
+        'visitPurpose': purpose,
+        'expectedValue': expectedValue,
+        'meetPersonDesig': meetPersonDesig,
+        'discussionNotes': notes,
+      };
+
+      // Attach Visiting Card image if present
+      if (visitingCardImage != null) {
+        dataMap['visitingCard'] = await MultipartFile.fromFile(
+          visitingCardImage.path,
+          filename: visitingCardImage.path.split('/').last,
+        );
+      }
+
+      // Attach Selfie image if present
+      if (selfieImage != null) {
+        dataMap['selfie'] = await MultipartFile.fromFile(
+          selfieImage.path,
+          filename: selfieImage.path.split('/').last,
+        );
+      }
+
+      final formData = FormData.fromMap(dataMap);
+
       final response = await _apiClient.post(
         AppConstants.clientVisitEndpoint,
-        data: {
-          'clientName': clientName,
-          'clientId': clientId,
-          'location': location,
-          'latitude': latitude,
-          'longitude': longitude,
-          'visitDate': visitDate.toIso8601String(),
-          'visitTime': visitTime.toIso8601String(),
-          'purpose': purpose,
-          'notes': notes,
-        },
+        data: formData,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {

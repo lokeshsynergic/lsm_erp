@@ -89,8 +89,7 @@ export class AuthService {
     throw new UnauthorizedException('Invalid credentials');
   }
       const mapsApiKey = this.configService.get<string>('GOOGLE_MAPS_API_KEY') ?? 'NOT_SET';
-      console.log('GOOGLE_MAPS_API_KEY:', mapsApiKey); // Log the API key to verify it's being read correctly
-  // Omit password from output
+    
   const { password: _, ...userWithoutPassword } = rawUser;
 
   return {

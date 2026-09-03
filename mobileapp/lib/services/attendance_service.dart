@@ -105,7 +105,7 @@ class AttendanceService {
   }
 
   Future<List<dynamic>> getTodayAttendance(String empcode) async {
-    final path = '/emp/attendance/$empcode';
+    final path = '${AppConstants.getAttendanceEndpoint}/$empcode';
     try {
       print('Sending GET request to path: $path');
       final response = await _apiClient.get(path);
