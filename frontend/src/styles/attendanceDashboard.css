@@ -271,9 +271,9 @@
 
 .status-present { background-color: #22c55e !important; }
 .status-wfh { background-color: #70147B !important; }
-.status-weekly-off { background-color: #f59e0b !important; }
+.status-weekly-off { background-color: #8A92A6 !important; }
 .status-paid-leave { background-color: #06b6d4 !important; }
-.status-late { background-color: #ea580c !important; }
+.status-late { background-color: #f59e0b !important; }
 
 /* Legend Bar */
 .calendar-legend-bar {

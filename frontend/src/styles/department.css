@@ -49,3 +49,10 @@
   letter-spacing: 0.04em;
   border-bottom: 1px solid #e0e0e0;
 }
+
+.empty-state-content {
+  text-align: center;
+  padding: 48px 24px;
+  color: #6b6b6b;
+  font-size: 14px;
+}

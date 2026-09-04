@@ -103,4 +103,10 @@ export class FieldVisit {
 
   @Column({ type: 'varchar', length: 255, name: 'meet_person_desig', nullable: true })
   meet_person_desig?: string;
+
+  @Column({ type: 'varchar', length: 50, name: 'visit_review_status', nullable: true })
+  visitReviewStatus?: string;
+
+  @Column({ type: 'text', name: 'remarks', nullable: true })
+  remarks?: string;
 }

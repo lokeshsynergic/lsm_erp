@@ -19,6 +19,7 @@ class AppConstants {
   static const String clientVisitEndpoint = 'mobile/meeting-visit';
   static const String notificationsEndpoint = 'mobile/notifications';
   static const String reportsEndpoint = 'mobile/reports';
+  static const String productListEndpoint = 'mobile/product/list';
 
   // Storage Keys
   static const String tokenKey = 'auth_token';

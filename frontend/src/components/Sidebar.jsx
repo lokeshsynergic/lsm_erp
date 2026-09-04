@@ -56,7 +56,15 @@ const menuItems = [
     expandable: true,
     submenu: [
       { label: "Customer", icon: <Users size={16} />, to: "/crm/customer" },
-      { label: "Call Log", icon: <FileText size={16} />, to: "/crm/call-log" }
+      { label: "Call Log", icon: <FileText size={16} />, to: "/crm/call-log" },
+      {
+        label: "Activity",
+        icon: <Clock3 size={16} />,
+        expandable: true,
+        submenu: [
+          { label: "Visit Log", icon: <FileText size={16} />, to: "/crm/activity/visit-log" }
+        ],
+      }
     ],
   },
   {
@@ -109,7 +117,11 @@ function Sidebar() {
 
     if (location.pathname.startsWith("/crm")) {
       setOpenSubmenu("CRM");
-      setOpenNestedSubmenu("");
+      if (location.pathname.startsWith("/crm/activity")) {
+        setOpenNestedSubmenu("CRM-Activity");
+      } else {
+        setOpenNestedSubmenu("");
+      }
       return;
     }
 

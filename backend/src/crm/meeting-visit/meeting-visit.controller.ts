@@ -7,6 +7,7 @@ import {
   Body,
   Param,
   ParseIntPipe,
+  Query,
   HttpCode,
   HttpStatus,
   UseInterceptors,
@@ -19,7 +20,7 @@ import { MeetingVisitService } from './meeting-visit.service';
 
 import { CreateClientVisitDto } from './dto/create-client-visit.dto';
 import { UpdateClientVisitDto } from './dto/update-client-visit.dto';
-
+import { VisitLogFilterDto } from './dto/visit-log-filter.dto';
 
 import { CrmLead } from './entities/leads.entity';
 import { FieldVisit } from './entities/field_visits.entity';
@@ -29,11 +30,23 @@ export class MeetingVisitController {
   constructor(private readonly meetingVisitService: MeetingVisitService) {
 
   }
-
+   
 
   @Get()
   async findAll(): Promise<FieldVisit[]> {
     return await this.meetingVisitService.findAll();
+  }
+
+  /**
+   * Get Visit Log Dashboard with filters
+   * GET /crm/meeting-visit/dashboard/visit-logs
+   * Query params: from_date, to_date, emp_code, product, organization, outcome
+   */
+  @Get('dashboard/visit-logs')
+  async getVisitLogDashboard(
+    @Query() filters: VisitLogFilterDto,
+  ): Promise<any[]> {
+    return await this.meetingVisitService.getVisitLogDashboard(filters);
   }
 
   /**
@@ -64,6 +77,26 @@ export class MeetingVisitController {
     @Body() updateClientVisitDto: UpdateClientVisitDto,
   ): Promise<FieldVisit> {
     return await this.meetingVisitService.update(id, updateClientVisitDto);
+  }
+
+  /**
+   * Update visit review status with remarks and follow-up actions
+   * PUT /crm/meeting-visit/:id/review
+   */
+  @Put(':id/review')
+  async updateVisitReview(
+    @Param('id', ParseIntPipe) id: number,
+    @Body()
+    body: {
+      visitReviewStatus: string;
+      remarks: string;
+    },
+  ): Promise<FieldVisit> {
+    return await this.meetingVisitService.updateVisitReview(
+      id,
+      body.visitReviewStatus,
+      body.remarks
+    );
   }
 
   /**

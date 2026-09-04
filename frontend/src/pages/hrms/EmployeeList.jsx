@@ -226,8 +226,8 @@ function EmployeeList() {
               <tr>
                 <th>ID</th>
                 <th>Name</th>
-                <th>Designation</th>
                 <th>Department</th>
+                <th>Designation</th>
                 <th>Status</th>
                 <th>Date of Joining</th>
                 <th>Action</th>
@@ -242,8 +242,8 @@ function EmployeeList() {
                     <td className="table-cell">
                       {employee.first_name} {employee.middle_name} {employee.last_name}
                     </td>
-                    <td className="table-cell">{employee.designation}</td>
                     <td className="table-cell">{employee.department}</td>
+                    <td className="table-cell">{employee.designation}</td>
                     <td className="table-cell">
                       <button
                         className={`status-badge ${employee.status.toLowerCase()}`}

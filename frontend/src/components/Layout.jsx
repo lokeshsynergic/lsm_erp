@@ -8,15 +8,10 @@ function Layout({ children }) {
       <Header />
 
       <div className="layout">
-
         <Sidebar />
-
         <div className="content">
-
           {children}
-
         </div>
-
       </div>
     </>
   );

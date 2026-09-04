@@ -40,7 +40,10 @@ class _ClientVisitScreenState extends State<ClientVisitScreen> {
   String _visitOutcome = 'Interested';
   bool _needsFollowUp = false;
   DateTime? _followUpDate;
-  List<String> _selectedProducts = [];
+  List<int> _selectedProductIds = [];
+  List<Map<String, dynamic>> _productMaster = [];
+  bool _isLoadingProducts = true;
+  String? _productLoadError;
   File? _selfieImage;
   double? _currentLatitude;
   double? _currentLongitude;
@@ -68,7 +71,50 @@ class _ClientVisitScreenState extends State<ClientVisitScreen> {
 
   Future<void> _initializeUser() async {
     empcode = await SessionManager.getUserId() ?? '';
-    setState(() {});
+    await _fetchProductList();
+  }
+
+  Future<void> _fetchProductList() async {
+    debugPrint('🔵 _fetchProductList() STARTED');
+    setState(() {
+      _isLoadingProducts = true;
+      _productLoadError = null;
+    });
+    debugPrint('🔵 Loading state set to true');
+    try {
+      debugPrint('🔵 Calling _clientVisitService.getProductList()');
+      final products = await _clientVisitService.getProductList();
+      debugPrint('🔵 API Response received: ${products.length} products');
+      if (products.isEmpty) {
+        debugPrint('🔴 No products returned from API');
+        setState(() {
+          _productLoadError = 'No products available';
+          _isLoadingProducts = false;
+        });
+        return;
+      }
+      debugPrint('🟢 Processing ${products.length} products');
+      setState(() {
+        _productMaster = products
+            .map(
+              (product) => {
+                'id': product.id is String
+                    ? int.tryParse(product.id.toString()) ?? 0
+                    : product.id,
+                'name': product.name,
+              },
+            )
+            .toList();
+        _isLoadingProducts = false;
+        debugPrint('🟢 Products loaded successfully: $_productMaster');
+      });
+    } catch (e) {
+      debugPrint('🔴 Error in _fetchProductList: $e');
+      setState(() {
+        _productLoadError = 'Error loading products: $e';
+        _isLoadingProducts = false;
+      });
+    }
   }
 
   @override
@@ -87,15 +133,6 @@ class _ClientVisitScreenState extends State<ClientVisitScreen> {
     _expectedValueController.dispose();
     super.dispose();
   }
-
-  // Sample Master Product List
-  final List<String> _productMaster = [
-    'PATIENT WARMER',
-    'IABP & DUO HEADLIGHT',
-    'VENTILATOR / DEFIB',
-    'HEART LUNG,IABP,VENTILATOR',
-    'SYRINGE PUMP',
-  ];
 
   final List<Map<String, dynamic>> _existingLeads = [
     {
@@ -382,10 +419,14 @@ class _ClientVisitScreenState extends State<ClientVisitScreen> {
                   child: RadioListTile<String>(
                     title: Text(
                       'Existing Lead',
-                      style: GoogleFonts.poppins(fontSize: 13),
+                      style: GoogleFonts.poppins(
+                        fontSize: 13,
+                        color: Colors.black87,
+                      ),
                     ),
                     value: 'existing',
                     groupValue: _leadType,
+                    activeColor: AppColors.primary,
                     onChanged: (val) => setModalState(() {
                       _leadType = val!;
                       _selectedLead = null;
@@ -396,10 +437,14 @@ class _ClientVisitScreenState extends State<ClientVisitScreen> {
                   child: RadioListTile<String>(
                     title: Text(
                       'New Lead',
-                      style: GoogleFonts.poppins(fontSize: 13),
+                      style: GoogleFonts.poppins(
+                        fontSize: 13,
+                        color: Colors.black87,
+                      ),
                     ),
                     value: 'new',
                     groupValue: _leadType,
+                    activeColor: AppColors.primary,
                     onChanged: (val) => setModalState(() {
                       _leadType = val!;
                       _selectedLead = null;
@@ -549,29 +594,118 @@ class _ClientVisitScreenState extends State<ClientVisitScreen> {
           ),
           const SizedBox(height: 12),
           Text(
-            'Products Discussed:',
+            'Products Discussed: *',
             style: GoogleFonts.poppins(
               fontSize: 12,
               fontWeight: FontWeight.w600,
             ),
           ),
-          Wrap(
-            spacing: 8,
-            children: _productMaster.map((prod) {
-              final isSelected = _selectedProducts.contains(prod);
-              return FilterChip(
-                label: Text(prod),
-                selected: isSelected,
-                onSelected: (selected) {
+          const SizedBox(height: 8),
+          if (_isLoadingProducts)
+            Container(
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              child: const Center(
+                child: SizedBox(
+                  height: 20,
+                  width: 20,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+              ),
+            )
+          else if (_productLoadError != null)
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.red.withOpacity(0.1),
+                border: Border.all(color: Colors.red),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                _productLoadError!,
+                style: const TextStyle(color: Colors.red, fontSize: 12),
+              ),
+            )
+          else if (_productMaster.isEmpty)
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.orange.withOpacity(0.1),
+                border: Border.all(color: Colors.orange),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Text(
+                'No products available',
+                style: TextStyle(color: Colors.orange, fontSize: 12),
+              ),
+            )
+          else
+            DropdownButtonFormField<int>(
+              decoration: const InputDecoration(
+                labelText: 'Select Products',
+                prefixIcon: Icon(Icons.shopping_bag_outlined),
+                contentPadding: EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
+              ),
+              isExpanded: true,
+              items: _productMaster.map((product) {
+                final id = product['id'] is int
+                    ? product['id']
+                    : int.tryParse(product['id'].toString()) ?? 0;
+                return DropdownMenuItem<int>(
+                  value: id,
+                  child: Text(product['name'] ?? 'Unknown'),
+                );
+              }).toList(),
+              onChanged: (value) {
+                if (value != null && !_selectedProductIds.contains(value)) {
                   setModalState(() {
-                    selected
-                        ? _selectedProducts.add(prod)
-                        : _selectedProducts.remove(prod);
+                    _selectedProductIds.add(value);
                   });
-                },
-              );
-            }).toList(),
-          ),
+                }
+              },
+            ),
+          if (_selectedProductIds.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            Text(
+              'Selected Products:',
+              style: GoogleFonts.poppins(
+                fontSize: 11,
+                fontWeight: FontWeight.w500,
+                color: AppColors.grey,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: _selectedProductIds.map((productId) {
+                final product = _productMaster.firstWhere(
+                  (p) {
+                    final id = p['id'] is int
+                        ? p['id']
+                        : int.tryParse(p['id'].toString()) ?? 0;
+                    return id == productId;
+                  },
+                  orElse: () => <String, Object>{
+                    'id': productId,
+                    'name': 'Unknown',
+                  },
+                );
+                return Chip(
+                  label: Text(product['name'].toString()),
+                  onDeleted: () {
+                    setModalState(() {
+                      _selectedProductIds.remove(productId);
+                    });
+                  },
+                  backgroundColor: AppColors.primary.withOpacity(0.1),
+                  labelStyle: const TextStyle(color: AppColors.primary),
+                );
+              }).toList(),
+            ),
+          ],
           const SizedBox(height: 10),
           TextField(
             controller: _discussionNotesController,
@@ -744,6 +878,7 @@ class _ClientVisitScreenState extends State<ClientVisitScreen> {
         expectedValue: double.tryParse(_expectedValueController.text) ?? 0.0,
         meetPersonDesig: _meetingWithController.text,
         notes: _discussionNotesController.text,
+        productIds: _selectedProductIds,
         visitingCardImage: _visitingCardImage, // Pass captured file
         selfieImage: _selfieImage, // Pass captured file
       );
@@ -769,6 +904,7 @@ class _ClientVisitScreenState extends State<ClientVisitScreen> {
       _selectedLead = null;
       _visitingCardImage = null;
       _selfieImage = null;
+      _selectedProductIds.clear();
       _currentStep = 1;
 
       if (mounted) {
