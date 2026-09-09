@@ -62,7 +62,8 @@ const menuItems = [
         icon: <Clock3 size={16} />,
         expandable: true,
         submenu: [
-          { label: "Visit Log", icon: <FileText size={16} />, to: "/crm/activity/visit-log" }
+          { label: "Visit Log", icon: <FileText size={16} />, to: "/crm/activity/visit-log" },
+          { label: "Call Log", icon: <FileText size={16} />, to: "/crm/activity/call-logs" }
         ],
       }
     ],

@@ -122,4 +122,8 @@ export class CreateClientVisitDto {
   @IsString()
   @IsOptional()
   meetPersonDesig?: string;
+
+  @IsNumber({}, { each: true })
+  @IsOptional()
+  productIds?: number[];
 }

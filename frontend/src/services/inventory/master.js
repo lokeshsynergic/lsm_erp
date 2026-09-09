@@ -70,3 +70,7 @@ export const saveUnit = (data, id) => {
 export const getUnitById = (id) => {
   return apiRequest("GET", `invt/master/unit/${id}`);
 };
+
+export const getProductTypes = () => {
+  return apiRequest("GET", "invt/master/product-type");
+};

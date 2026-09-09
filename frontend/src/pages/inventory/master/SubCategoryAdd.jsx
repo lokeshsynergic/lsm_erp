@@ -18,8 +18,13 @@ function SubCategoryAdd() {
    const loadSubCategory = async () => {
      try {
        const data = await getSubCategoryById(id);
-       if (data && data.subcategory_name) {
-         setSubcategoryName(data.subcategory_name);
+       if (data) {
+         if (data.subcategory_name) {
+           setSubcategoryName(data.subcategory_name);
+         }
+         if (data.category_id) {
+           setCategoryId(data.category_id);
+         }
        }
      } catch (error) {
        console.error("Failed to load subcategory details:", error);

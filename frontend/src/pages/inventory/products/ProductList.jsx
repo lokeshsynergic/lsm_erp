@@ -250,18 +250,14 @@ function ProductList() {
                       <div className="action-buttons">
                         <button
                           className="edit-btn"
-                          onClick={() => handleEdit(product.product_id)}
-                          title="Edit Product"
-                        >
-                          
+                          onClick={() => handleEdit(product.productId)}
+                          title="Edit Product">
                         </button>
-                        <button
+                        {/* <button
                           className="delete-btn"
-                          onClick={() => handleDelete(product.product_id)}
-                          title="Delete Product"
-                        >
-                          
-                        </button>
+                          onClick={() => handleDelete(product.productId)}
+                          title="Delete Product">
+                        </button> */}
                       </div>
                     </td>
                   </tr>

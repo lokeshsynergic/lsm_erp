@@ -17,6 +17,7 @@ import {
   getSubCategory,
   getManufacturer,
   getUnit,
+  getProductTypes,
 } from "../../../services/inventory/master";
 import { useNavigate, useParams } from "react-router-dom";
 
@@ -38,6 +39,7 @@ function ProductAdd() {
   const [subCategories, setSubCategories] = useState([]);
   const [manufacturers, setManufacturers] = useState([]);
   const [units, setUnits] = useState([]);
+  const [productTypes, setProductTypes] = useState([]);
 
   // --- Core Identification ---
   const [productCode, setProductCode] = useState("");
@@ -96,6 +98,9 @@ function ProductAdd() {
 
         const unitData = await getUnit();
         setUnits(Array.isArray(unitData) ? unitData : []);
+
+        const prodTypeData = await getProductTypes();
+        setProductTypes(Array.isArray(prodTypeData) ? prodTypeData : []);
       } catch (err) {
         console.error("Error fetching master data:", err);
       }
@@ -386,7 +391,7 @@ function ProductAdd() {
                 </div>
 
                 <div className="form-field">
-                  <label>Model Number</label>
+                  <label>Model Number/Size</label>
                   <input
                     type="text"
                     value={modelNumber}
@@ -418,10 +423,12 @@ function ProductAdd() {
                 <div className="form-field">
                   <label>Product Type</label>
                   <select value={productType} onChange={(e) => setProductType(e.target.value)}>
-                    <option value="Finished Good">Finished Good</option>
-                    <option value="Spare Parts">Spare Parts</option>
-                    <option value="Consumable">Consumable</option>
-                    <option value="Service">Service</option>
+                    <option value="">Select Product Type</option>
+                    {productTypes.map((type) => (
+                      <option key={type.prodTypeId} value={type.prodTypeId} selected={productType === type.prodTypeId}>
+                        {type.prodTypeName}
+                      </option>
+                    ))}
                   </select>
                 </div>
 

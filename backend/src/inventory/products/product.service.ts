@@ -20,6 +20,7 @@ export class ProductService {
     private productImageRepository: Repository<ProductImage>,
     @InjectRepository(ProductDocument)
     private productDocumentRepository: Repository<ProductDocument>,
+  
   ) {}
 
   // ==================== PRODUCT OPERATIONS ====================
@@ -28,7 +29,11 @@ export class ProductService {
    * Create a new product
    */
   async create(createProductDto: CreateProductDto): Promise<Product> {
-    const product = this.productRepository.create(createProductDto);
+      const payload = {
+    ...createProductDto,
+    discontinueDate: createProductDto.discontinueDate || null
+  };
+    const product = this.productRepository.create(payload);
     return await this.productRepository.save(product);
   }
 

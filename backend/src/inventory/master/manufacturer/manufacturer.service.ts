@@ -19,12 +19,12 @@ export class ManufacturerService {
   }
 
   /**
-   * Get all departments
+   * Get all manufacturers
    */
   async findAll(): Promise<Manufacturer[]> {
     return await this.manufacturerRepository.find({
       order: {
-        manufacturer_id: 'ASC',
+        manufacturer_name: 'ASC',
       },
     });
   }

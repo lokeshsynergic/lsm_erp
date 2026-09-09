@@ -38,7 +38,7 @@ class ClientVisitService {
         'contactPerson': contactPerson,
         'phone': phone,
         'email': email,
-        'clientId': clientId,
+        'customerId': clientId,
         'location': location,
         'checkInLat': latitude,
         'checkInLong': longitude,
@@ -62,6 +62,7 @@ class ClientVisitService {
           filename: visitingCardImage.path.split('/').last,
         );
       }
+      ;
 
       // Attach Selfie image if present
       if (selfieImage != null) {
@@ -72,6 +73,7 @@ class ClientVisitService {
       }
 
       final formData = FormData.fromMap(dataMap);
+      print('MY_DATA: $dataMap');
 
       final response = await _apiClient.post(
         AppConstants.clientVisitEndpoint,
@@ -147,14 +149,10 @@ class ClientVisitService {
   //  Code For PRODUCT LIST 09/04/2026
   Future<List<Product>> getProductList() async {
     try {
-      print('🔵 getProductList() called');
-      print('🔵 Base URL: ${AppConstants.baseUrl}');
-      print('🔵 Endpoint: ${AppConstants.productListEndpoint}');
       print(
         '🔵 Complete URL: ${AppConstants.baseUrl}${AppConstants.productListEndpoint}',
       );
       final response = await _apiClient.get(AppConstants.productListEndpoint);
-      print('✅ API Response received');
       print('Response status: ${response.statusCode}');
       print('Response data: ${response.data}');
       print('Response headers: ${response.headers}');

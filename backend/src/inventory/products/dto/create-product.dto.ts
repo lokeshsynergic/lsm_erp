@@ -1,4 +1,5 @@
-import { IsString, IsNotEmpty, IsNumber, IsDecimal, IsOptional } from 'class-validator';
+import { IsString, IsNotEmpty, IsNumber, IsDecimal, IsOptional, IsDate } from 'class-validator';
+import { Transform } from 'class-transformer';
 
 export class CreateProductDto {
   @IsString()
@@ -28,4 +29,8 @@ export class CreateProductDto {
   @IsString()
   @IsOptional()
   sku?: string;
+
+  @IsOptional()
+  @IsDate()
+  discontinueDate?: Date | null;   
 }

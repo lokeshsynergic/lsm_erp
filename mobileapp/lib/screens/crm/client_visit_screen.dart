@@ -59,6 +59,7 @@ class _ClientVisitScreenState extends State<ClientVisitScreen> {
   bool _isLoadingLocation = false;
   final ImagePicker _picker = ImagePicker();
   String empcode = '';
+  int _selectedCustomerId = 0;
 
   // on loading, get the current location
   @override
@@ -456,6 +457,35 @@ class _ClientVisitScreenState extends State<ClientVisitScreen> {
           ),
           const SizedBox(height: 16),
           if (_leadType == 'existing') ...[
+            // Autocomplete<Map<String, dynamic>>(
+            //   displayStringForOption: (opt) =>
+            //       '${opt['name']} (${opt['phone']})',
+            //   optionsBuilder: (textVal) {
+            //     if (textVal.text.isEmpty) return const Iterable.empty();
+            //     return _existingLeads.where(
+            //       (lead) =>
+            //           lead['name'].toString().toLowerCase().contains(
+            //             textVal.text.toLowerCase(),
+            //           ) ||
+            //           lead['phone'].toString().contains(textVal.text),
+            //     );
+            //   },
+            //   onSelected: (selection) => setModalState(() {
+            //     _selectedLead = selection;
+            //     _clientNameController.text = selection['name'];
+            //     _contactPersonController.text = selection['contactPerson'];
+            //     _phoneController.text = selection['phone'];
+            //     _emailController.text = 'N/A';
+            //   }),
+            //   fieldViewBuilder: (ctx, ctrl, node, onSubmit) => TextField(
+            //     controller: ctrl,
+            //     focusNode: node,
+            //     decoration: const InputDecoration(
+            //       labelText: 'Search Lead / Customer',
+            //       prefixIcon: Icon(Icons.search),
+            //     ),
+            //   ),
+            // ),
             Autocomplete<Map<String, dynamic>>(
               displayStringForOption: (opt) =>
                   '${opt['name']} (${opt['phone']})',
@@ -471,7 +501,14 @@ class _ClientVisitScreenState extends State<ClientVisitScreen> {
               },
               onSelected: (selection) => setModalState(() {
                 _selectedLead = selection;
-                _clientNameController.text = selection['name'];
+
+                // Auto-fill controllers with selected lead values
+                _selectedCustomerId = selection['id'] ?? 0;
+                _clientNameController.text = selection['name'] ?? '';
+                _contactPersonController.text =
+                    selection['contactPerson'] ?? '';
+                _phoneController.text = selection['phone'] ?? '';
+                _emailController.text = selection['email'] ?? '';
               }),
               fieldViewBuilder: (ctx, ctrl, node, onSubmit) => TextField(
                 controller: ctrl,
@@ -746,7 +783,7 @@ class _ClientVisitScreenState extends State<ClientVisitScreen> {
           InkWell(
             onTap: () => _captureSelfie(setModalState),
             child: Container(
-              height: 100,
+              height: 250,
               decoration: BoxDecoration(
                 border: Border.all(color: Colors.grey.shade400),
                 borderRadius: BorderRadius.circular(12),
@@ -861,14 +898,13 @@ class _ClientVisitScreenState extends State<ClientVisitScreen> {
 
   Future<void> _submitVisitData() async {
     try {
-      // Show a quick loading state if required
       final newVisit = await _clientVisitService.createVisit(
         salesRepId: empcode,
         clientName: _clientNameController.text,
         contactPerson: _contactPersonController.text,
         phone: _phoneController.text,
         email: _emailController.text,
-        clientId: _selectedLead?['id'] ?? '',
+        clientId: _selectedCustomerId.toString(),
         location: _locationController.text,
         latitude: _currentLatitude ?? 0.0,
         longitude: _currentLongitude ?? 0.0,
@@ -883,11 +919,6 @@ class _ClientVisitScreenState extends State<ClientVisitScreen> {
         selfieImage: _selfieImage, // Pass captured file
       );
 
-      // setState(() {
-      //   _visits.add(newVisit); // Add API response to local state list
-      // });
-
-      // Clear Text Controllers
       _clientNameController.clear();
       _locationController.clear();
       _purposeController.clear();
@@ -895,10 +926,7 @@ class _ClientVisitScreenState extends State<ClientVisitScreen> {
       _contactPersonController.clear();
       _phoneController.clear();
       _meetingWithController.clear();
-
       _discussionNotesController.clear();
-
-      // Reset Selection & Image Variables
       _selectedDate = null;
       _selectedTime = null;
       _selectedLead = null;

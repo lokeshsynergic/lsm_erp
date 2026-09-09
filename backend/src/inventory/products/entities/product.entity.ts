@@ -205,7 +205,7 @@ export class Product {
     type: 'date',
     nullable: true,
   })
-  discontinueDate?: Date;
+  discontinueDate?: Date | null;
 
   @Column({
     name: 'created_at',

@@ -278,6 +278,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               const SizedBox(height: 8),
                               TextField(
                                 controller: _dobController,
+                                keyboardType: TextInputType.phone,
                                 decoration: InputDecoration(
                                   hintText: 'YYYY-MM-DD',
                                   prefixIcon: const Icon(
@@ -288,8 +289,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                 ),
-                                keyboardType: TextInputType.datetime,
                               ),
+                              // TextField(
+                              //   controller: _dobController,
+                              //   decoration: InputDecoration(
+                              //     hintText: 'YYYY-MM-DD',
+                              //     prefixIcon: const Icon(
+                              //       Icons.calendar_today_outlined,
+                              //     ),
+                              //     prefixIconColor: AppColors.primary,
+                              //     border: OutlineInputBorder(
+                              //       borderRadius: BorderRadius.circular(8),
+                              //     ),
+                              //   ),
+                              //   keyboardType: TextInputType.datetime,
+                              // ),
                             ],
                           ),
                           const SizedBox(height: 28),
