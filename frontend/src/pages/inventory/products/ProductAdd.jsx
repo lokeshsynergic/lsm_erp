@@ -13,7 +13,7 @@ import {
   deleteProductDocument,
 } from "../../../services/inventory/products";
 import {
-  getCategory,
+  getCategory,getSubCategoryBycategory,
   getSubCategory,
   getManufacturer,
   getUnit,
@@ -40,6 +40,7 @@ function ProductAdd() {
   const [manufacturers, setManufacturers] = useState([]);
   const [units, setUnits] = useState([]);
   const [productTypes, setProductTypes] = useState([]);
+  const [pendingSubCategoryId, setPendingSubCategoryId] = useState(null);
 
   // --- Core Identification ---
   const [productCode, setProductCode] = useState("");
@@ -90,9 +91,6 @@ function ProductAdd() {
         const catData = await getCategory();
         setCategories(Array.isArray(catData) ? catData : []);
 
-        const subCatData = await getSubCategory();
-        setSubCategories(Array.isArray(subCatData) ? subCatData : []);
-
         const mfgData = await getManufacturer();
         setManufacturers(Array.isArray(mfgData) ? mfgData : []);
 
@@ -107,6 +105,37 @@ function ProductAdd() {
     };
     fetchMasterData();
   }, []);
+
+  // Apply pending subcategory selection when subcategories are loaded
+  useEffect(() => {
+    if (pendingSubCategoryId && subCategories.length > 0) {
+      setSubCategoryId(pendingSubCategoryId);
+      setPendingSubCategoryId(null);
+    }
+  }, [subCategories, pendingSubCategoryId]);
+
+  // Fetch subcategories when category changes (only for manual changes)
+  useEffect(() => {
+    const fetchSubcategoriesByCategory = async () => {
+      if (categoryId) {
+        try {
+          const data = await getSubCategoryBycategory(categoryId);
+          setSubCategories(Array.isArray(data) ? data : []);
+          if (!pendingSubCategoryId) {
+            setSubCategoryId(""); // Reset subcategory when category changes by user
+          }
+        } catch (err) {
+          console.error("Error fetching subcategories:", err);
+          setSubCategories([]); // Clear subcategories on error
+          setSubCategoryId(""); // Reset subcategory selection
+        }
+      } else {
+        setSubCategories([]);
+        setSubCategoryId("");
+      }
+    };
+    fetchSubcategoriesByCategory();
+  }, [categoryId]);
 
   // Load product if editing
   useEffect(() => {
@@ -123,7 +152,21 @@ function ProductAdd() {
         setProductName(data.productName || "");
         setShortName(data.shortName || "");
         setCategoryId(data.categoryId || "");
-        setSubCategoryId(data.subCategoryId || "");
+        
+        // Fetch subcategories and set pending selection
+        if (data.categoryId) {
+          try {
+            const subCatData = await getSubCategoryBycategory(data.categoryId);
+            setSubCategories(Array.isArray(subCatData) ? subCatData : []);
+            if (data.subCategoryId) {
+              setPendingSubCategoryId(data.subCategoryId);
+            }
+          } catch (err) {
+            console.error("Error fetching subcategories:", err);
+            setSubCategories([]);
+          }
+        }
+        
         setManufacturerId(data.manufacturerId || "");
         setUnitId(data.unitId || "");
         setModelNumber(data.modelNumber || "");
@@ -359,7 +402,7 @@ function ProductAdd() {
                   <select value={subCategoryId} onChange={(e) => setSubCategoryId(e.target.value)}>
                     <option value="">Select Sub-Category</option>
                     {subCategories.map((subCat) => (
-                      <option key={subCat.subcategory_id} value={subCat.subcategory_id}>
+                      <option key={subCat.subcategory_id} value={subCat.subcategory_id} selected={subCat.subcategory_id === subCategoryId}>
                         {subCat.subcategory_name}
                       </option>
                     ))}
@@ -493,12 +536,11 @@ function ProductAdd() {
 
               <div className="form-field">
                 <label>GST Category</label>
-                <input
-                  type="text"
-                  value={gstCategory}
-                  onChange={(e) => setGstCategory(e.target.value)}
-                  placeholder="Enter GST category"
-                />
+                <select value={gstCategory} onChange={(e) => setGstCategory(e.target.value)}>
+                  <option value="1" selected={gstCategory === "1"}>GST</option>
+                  <option value="2" selected={gstCategory === "2"}>IGST</option>
+                </select>
+              
               </div>
 
               <div className="form-field">

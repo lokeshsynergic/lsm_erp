@@ -10,6 +10,9 @@ import { CreateProductImageDto } from './dto/create-product-image.dto';
 import { UpdateProductImageDto } from './dto/update-product-image.dto';
 import { CreateProductDocumentDto } from './dto/create-product-document.dto';
 import { UpdateProductDocumentDto } from './dto/update-product-document.dto';
+import { Category } from '../master/category/entities/category.entity';
+
+import { Manufacturer } from '../master/manufacturer/entities/manufacturer.entity';
 
 @Injectable()
 export class ProductService {
@@ -20,6 +23,10 @@ export class ProductService {
     private productImageRepository: Repository<ProductImage>,
     @InjectRepository(ProductDocument)
     private productDocumentRepository: Repository<ProductDocument>,
+    @InjectRepository(Category)
+    private categoryRepository: Repository<Category>,
+    @InjectRepository(Manufacturer)
+    private manufacturerRepository: Repository<Manufacturer>,
   
   ) {}
 
@@ -40,12 +47,34 @@ export class ProductService {
   /**
    * Get all products
    */
-  async findAll(): Promise<Product[]> {
-    return await this.productRepository.find({
-      relations: ['images', 'documents'],
-      order: { productId: 'DESC' },
-    });
-  }
+  // async findAll(): Promise<Product[]> {
+  //   return await this.productRepository.find({
+  //     relations: ['images', 'documents', 'category', 'manufacturer'],
+  //     order: { productId: 'DESC' },
+  //   });
+  // }
+
+      async findAll() {
+      const products = await this.productRepository.query(`
+        SELECT
+          p.product_code as productCode,
+          p.product_id as productId,
+          p.product_name as productName,
+          p.short_name as shortName,
+          p.status as status,
+          c.category_name,
+          m.manufacturer_name
+        FROM md_invt_products p
+        LEFT JOIN md_invt_category c
+          ON p.category_id = c.category_id
+        LEFT JOIN md_invt_manufacturer m
+          ON p.manufacturer_id = m.manufacturer_id
+        ORDER BY p.product_id DESC
+      `);
+
+      return products;
+    }
+  
 
   /**
    * Get product by ID with related images and documents
@@ -68,8 +97,11 @@ export class ProductService {
    */
   async update(product_id: number, updateProductDto: UpdateProductDto): Promise<Product> {
     const product = await this.findOne(product_id);
-
-    Object.assign(product, updateProductDto);
+    const payload = {
+      ...updateProductDto,
+      discontinueDate: updateProductDto.discontinueDate || null
+    };
+    Object.assign(product, payload);
     return await this.productRepository.save(product);
   }
 

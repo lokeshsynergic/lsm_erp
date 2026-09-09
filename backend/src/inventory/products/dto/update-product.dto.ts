@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsDecimal, IsNumber } from 'class-validator';
+import { IsString, IsOptional, IsDecimal, IsNumber, IsDate } from 'class-validator';
 
 export class UpdateProductDto {
   @IsString()
@@ -32,4 +32,8 @@ export class UpdateProductDto {
   @IsString()
   @IsOptional()
   status?: string;
+
+  @IsOptional()
+  @IsDate()
+  discontinueDate?: Date | null;
 }

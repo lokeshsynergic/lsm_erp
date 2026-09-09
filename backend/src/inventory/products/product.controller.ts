@@ -19,6 +19,9 @@ import { UpdateProductDocumentDto } from './dto/update-product-document.dto';
 import { Product } from './entities/product.entity';
 import { ProductImage } from './entities/product-image.entity';
 import { ProductDocument } from './entities/product-document.entity';
+import { ProductType } from '../master/product_type/entities/product-type.entity';    
+
+
 
 @Controller('invt/product')
 export class ProductController {

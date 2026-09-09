@@ -46,6 +46,17 @@ export class SubcategoryService {
     .orderBy('sub.subcategory_id', 'ASC')
     .getRawMany();
 }
+  //  List of subcategories by category ID
+  async findByCategory(category_id: number): Promise<Subcategory[]> {
+    const subcategories = await this.subcategoryRepository.find({
+      select: ['subcategory_id', 'subcategory_name'],
+      where: { category_id },
+    });
+    if (!subcategories || subcategories.length === 0) {
+      throw new NotFoundException(`Subcategories with category ID ${category_id} not found`);
+    }
+    return subcategories;
+  }
 
   /**
    * Get subcategory by ID

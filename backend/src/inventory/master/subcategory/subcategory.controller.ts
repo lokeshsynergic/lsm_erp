@@ -39,6 +39,15 @@ export class SubcategoryController {
   }
 
   /**
+   * Get subcategories by category ID
+   * GET /subcategory/:categoryId
+   */
+  @Get('subcategory/:categoryId')
+  async findByCategory(@Param('categoryId') categoryId: number): Promise<Subcategory[]> {
+    return await this.subcategoryService.findByCategory(categoryId);
+  }
+
+  /**
    * Get department by ID
    * GET /department/:id
    */

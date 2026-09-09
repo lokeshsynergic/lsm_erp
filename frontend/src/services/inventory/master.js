@@ -34,6 +34,9 @@ export const saveSubCategory = (data, id) => {
 export const getSubCategoryById = (id) => {
   return apiRequest("GET", `invt/master/subcategory/${id}`);
 };
+export const getSubCategoryBycategory = (id) => {
+  return apiRequest("GET", `invt/master/subcategory/subcategory/${id}`);
+};
 
 //    Function for Manufacturer
 export const getManufacturer = (data) => {

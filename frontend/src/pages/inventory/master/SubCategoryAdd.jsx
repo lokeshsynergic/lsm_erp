@@ -8,12 +8,32 @@ function SubCategoryAdd() {
  const [subcategory_name, setSubcategoryName] = useState("");
    const navigate = useNavigate();
    const { id } = useParams();
- 
+   const [categories, setCategories] = useState([]);
+   const [category_id, setCategoryId] = useState("");
+   const [categoriesLoaded, setCategoriesLoaded] = useState(false);
+
+   // Fetch categories on mount
    useEffect(() => {
-     if (id) {
+     const fetchCategories = async () => {
+       try {
+         const data = await getCategory();
+         setCategories(Array.isArray(data) ? data : []);
+         setCategoriesLoaded(true);
+       } catch (error) {
+         console.error("Failed to load categories:", error);
+         setCategoriesLoaded(true);
+       }
+     };
+
+     fetchCategories();
+   }, []);
+
+   // Load subcategory data after categories are loaded
+   useEffect(() => {
+     if (id && categoriesLoaded) {
        loadSubCategory();
      }
-   }, [id]);
+   }, [id, categoriesLoaded]);
  
    const loadSubCategory = async () => {
      try {
@@ -30,22 +50,6 @@ function SubCategoryAdd() {
        console.error("Failed to load subcategory details:", error);
      }
    };
-
-  const [categories, setCategories] = useState([]);
-  const [category_id, setCategoryId] = useState("");
-
-   useEffect(() => {
-     const fetchCategories = async () => {
-       try {
-         const data = await getCategory();
-         setCategories(data);
-       } catch (error) {
-         console.error("Failed to load categories:", error);
-       }
-     };
-
-     fetchCategories();
-   }, []);
  
    const handleSubmit = (e) => {
      e.preventDefault();

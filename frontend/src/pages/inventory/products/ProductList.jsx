@@ -235,12 +235,12 @@ function ProductList() {
             <tbody>
               {filteredData.length > 0 ? (
                 filteredData.map((product) => (
-                  <tr key={product.product_id}>
-                    <td className="table-cell">{product.productCode}</td>
-                    <td className="table-cell">{product.productName}</td>
-                    <td className="table-cell">{product.shortName || "-"}</td>
-                    <td className="table-cell">{product.categoryName || "-"}</td>
-                    <td className="table-cell">{product.manufacturerName || "-"}</td>
+                  <tr key={product.productid}>
+                    <td className="table-cell">{product.productcode}</td>
+                    <td className="table-cell">{product.productname}</td>
+                    <td className="table-cell">{product.shortname || "-"}</td>
+                    <td className="table-cell">{product.category_name || "-"}</td>
+                    <td className="table-cell">{product.manufacturer_name || "-"}</td>
                     <td className="table-cell">
                       <span className={`status-badge ${product.status.toLowerCase()}`}>
                         {product.status}
@@ -250,7 +250,7 @@ function ProductList() {
                       <div className="action-buttons">
                         <button
                           className="edit-btn"
-                          onClick={() => handleEdit(product.productId)}
+                          onClick={() => handleEdit(product.productid)}
                           title="Edit Product">
                         </button>
                         {/* <button
