@@ -106,36 +106,50 @@ function ProductAdd() {
     fetchMasterData();
   }, []);
 
-  // Apply pending subcategory selection when subcategories are loaded
-  useEffect(() => {
-    if (pendingSubCategoryId && subCategories.length > 0) {
-      setSubCategoryId(pendingSubCategoryId);
-      setPendingSubCategoryId(null);
-    }
-  }, [subCategories, pendingSubCategoryId]);
+  
 
   // Fetch subcategories when category changes (only for manual changes)
   useEffect(() => {
-    const fetchSubcategoriesByCategory = async () => {
-      if (categoryId) {
-        try {
-          const data = await getSubCategoryBycategory(categoryId);
-          setSubCategories(Array.isArray(data) ? data : []);
-          if (!pendingSubCategoryId) {
-            setSubCategoryId(""); // Reset subcategory when category changes by user
-          }
-        } catch (err) {
-          console.error("Error fetching subcategories:", err);
-          setSubCategories([]); // Clear subcategories on error
-          setSubCategoryId(""); // Reset subcategory selection
-        }
-      } else {
-        setSubCategories([]);
-        setSubCategoryId("");
+  let isMounted = true;
+
+  const fetchSubcategories = async () => {
+    if (!categoryId) {
+      setSubCategories([]);
+      setSubCategoryId("");
+      return;
+    }
+
+    try {
+      const data = await getSubCategoryBycategory(categoryId);
+      if (isMounted) {
+        setSubCategories(Array.isArray(data) ? data : []);
       }
-    };
-    fetchSubcategoriesByCategory();
-  }, [categoryId]);
+    } catch (err) {
+      console.error("Error fetching subcategories:", err);
+      if (isMounted) setSubCategories([]);
+    }
+  };
+
+  fetchSubcategories();
+
+  return () => { isMounted = false; };
+}, [categoryId]);
+
+
+// 2. Sync pending selection when subCategories load
+useEffect(() => {
+  if (pendingSubCategoryId && subCategories.length > 0) {
+    // Ensure the ID exists in the fetched list (cast types if one is string and other is number)
+    const exists = subCategories.some(
+      (sc) => String(sc.subcategory_id) === String(pendingSubCategoryId)
+    );
+
+    if (exists) {
+      setSubCategoryId(pendingSubCategoryId);
+      setPendingSubCategoryId(null); // Clear pending state after applying
+    }
+  }
+}, [subCategories, pendingSubCategoryId]);
 
   // Load product if editing
   useEffect(() => {
@@ -151,21 +165,14 @@ function ProductAdd() {
         setProductCode(data.productCode || "");
         setProductName(data.productName || "");
         setShortName(data.shortName || "");
-        setCategoryId(data.categoryId || "");
         
-        // Fetch subcategories and set pending selection
-        if (data.categoryId) {
-          try {
-            const subCatData = await getSubCategoryBycategory(data.categoryId);
-            setSubCategories(Array.isArray(subCatData) ? subCatData : []);
-            if (data.subCategoryId) {
-              setPendingSubCategoryId(data.subCategoryId);
-            }
-          } catch (err) {
-            console.error("Error fetching subcategories:", err);
-            setSubCategories([]);
-          }
+        // Set pending subcategory BEFORE category to ensure it's respected in useEffect
+        if (data.subCategoryId) {
+          setPendingSubCategoryId(data.subCategoryId);
         }
+        
+        // Set category - this will trigger subcategory fetch in useEffect
+        setCategoryId(data.categoryId || "");
         
         setManufacturerId(data.manufacturerId || "");
         setUnitId(data.unitId || "");
@@ -398,16 +405,19 @@ function ProductAdd() {
                 </div>
 
                 <div className="form-field">
-                  <label>Sub-Category</label>
-                  <select value={subCategoryId} onChange={(e) => setSubCategoryId(e.target.value)}>
-                    <option value="">Select Sub-Category</option>
-                    {subCategories.map((subCat) => (
-                      <option key={subCat.subcategory_id} value={subCat.subcategory_id} selected={subCat.subcategory_id === subCategoryId}>
-                        {subCat.subcategory_name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                <label>Sub-Category</label>
+                <select 
+                  value={subCategoryId || ""} 
+                  onChange={(e) => setSubCategoryId(e.target.value)}
+                >
+                  <option value="">Select Sub-Category</option>
+                  {subCategories.map((subCat) => (
+                    <option key={subCat.subcategory_id} value={subCat.subcategory_id}>
+                      {subCat.subcategory_name}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
                 <div className="form-field">
                   <label>Manufacturer</label>
