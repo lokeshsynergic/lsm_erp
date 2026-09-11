@@ -663,7 +663,7 @@ private async uploadAttendanceImage(
         OR 
         (${hasDateRange ? '1=0' : '1=1'} AND a.indatetime >= CURRENT_DATE - INTERVAL '30 days')
       )
-      AND a.indatetime IS NOT NULL;
+      AND a.indatetime IS NOT NULL ORDER BY a.indatetime DESC;
   `;
 
   const parameters = hasDateRange 
