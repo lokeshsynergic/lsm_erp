@@ -553,28 +553,11 @@ private async uploadAttendanceImage(
     return result[0];
   }
 
-//   async getLast30DaysAttendance() {
-//   const query = `
-//     SELECT 
-//       empcode AS user_id,
-//       indatetime::date::text AS date,
-//       CASE 
-//         WHEN is_out_of_office = 1 THEN 'out_of_office'
-//         WHEN indatetime IS NOT NULL THEN 'present'
-//         ELSE 'absent'
-//       END AS status
-//     FROM td_hrms_attendance
-//     WHERE indatetime >= CURRENT_DATE - INTERVAL '30 days'
-//       AND indatetime IS NOT NULL;
-//   `;
-
-//   const result = await this.dataSource.query(query);
-//   return result;
-// }   
 
   async getLast30DaysAttendance() {
   const query = `
-    SELECT 
+    SELECT
+      s2.first_name || ' ' || s2.middle_name || ' ' || s2.last_name AS emp_name,
       a.empcode AS user_id,
       a.indatetime::date::text AS date,
       CASE 
@@ -588,6 +571,8 @@ private async uploadAttendanceImage(
       ON a.empcode = u.user_id
     LEFT JOIN md_hrms_shift s 
       ON u.shift_id = s.shift_code
+    INNER JOIN md_hrms_employee s2
+      ON a.empcode = s2.emp_code
     WHERE a.indatetime >= CURRENT_DATE - INTERVAL '30 days'
       AND a.indatetime IS NOT NULL;
   `;
@@ -596,7 +581,7 @@ private async uploadAttendanceImage(
   return result;
 }
 
-   async getAttendanceByDateRange(fromDate?: string, toDate?: string) {
+  async getAttendanceByDateRange(fromDate?: string, toDate?: string) {
   // Fallbacks: default to date range if not passed
   const defaultToDate = new Date().toISOString().split('T')[0];
   const defaultFromDate = new Date(Date.now() - 29 * 24 * 60 * 60 * 1000)
@@ -607,7 +592,8 @@ private async uploadAttendanceImage(
   const endDate = toDate || defaultToDate;
 
   const query = `
-    SELECT 
+    SELECT
+      s2.first_name || ' ' || s2.middle_name || ' ' || s2.last_name AS emp_name, 
       a.empcode AS user_id,
       a.indatetime::date::text AS date,
       CASE 
@@ -619,6 +605,8 @@ private async uploadAttendanceImage(
     FROM td_hrms_attendance a
     INNER JOIN td_user u 
       ON a.empcode = u.user_id
+    INNER JOIN md_hrms_employee s2
+      ON a.empcode = s2.emp_code
     LEFT JOIN md_hrms_shift s 
       ON u.shift_id = s.shift_code
     WHERE a.indatetime::date >= $1::date
@@ -634,7 +622,8 @@ private async uploadAttendanceImage(
   const hasDateRange = fromDate && toDate;
   console.log('📅 getEmployeeAttendance called with:', { empCode, fromDate, toDate, hasDateRange });
   const query = `
-    SELECT 
+    SELECT
+      s2.first_name || ' ' || s2.middle_name || ' ' || s2.last_name AS emp_name,
       a.empcode AS user_id,
       a.indatetime::date::text AS date,
       a.indatetime,
@@ -652,12 +641,22 @@ private async uploadAttendanceImage(
         WHEN a.indatetime IS NOT NULL AND a.indatetime::time > s.start_time THEN 'late'
         WHEN a.indatetime IS NOT NULL THEN 'present'
         ELSE 'absent'
-      END AS status
+      END AS status,
+      CASE 
+    WHEN a.out_dttime IS NULL THEN NULL
+    WHEN a.out_dttime < a.indatetime THEN '00:00:00' 
+    ELSE 
+      LPAD(FLOOR(EXTRACT(EPOCH FROM (a.out_dttime - a.indatetime)) / 3600)::text, 2, '0') || ':' ||
+      LPAD(FLOOR((EXTRACT(EPOCH FROM (a.out_dttime - a.indatetime)) % 3600) / 60)::text, 2, '0') || ':' ||
+      LPAD(FLOOR(EXTRACT(EPOCH FROM (a.out_dttime - a.indatetime)) % 60)::text, 2, '0')
+    END AS working_hours
     FROM td_hrms_attendance a
     INNER JOIN td_user u 
       ON a.empcode = u.user_id
     LEFT JOIN md_hrms_shift s 
       ON u.shift_id = s.shift_code
+    JOIN md_hrms_employee s2
+      ON a.empcode = s2.emp_code
     WHERE a.empcode = $1
       AND (
         (${hasDateRange ? '1=1' : '1=0'} AND a.indatetime::date BETWEEN $2::date AND $3::date)

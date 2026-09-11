@@ -79,6 +79,7 @@ export class ServiceCallService {
     FROM td_crm_service_call sc
     LEFT JOIN md_hrms_employee emp
       ON sc.engineer = emp.emp_code
+      order by sc.call_date desc
   `);
 }
 
