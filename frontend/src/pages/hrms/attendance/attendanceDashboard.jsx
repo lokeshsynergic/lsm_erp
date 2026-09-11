@@ -66,21 +66,7 @@ const handleFilterSubmit = (e) => {
     }
   };
 
-  // Fetch 30-day attendance records and create hash map
-  // const fetchAttendanceRecords = async () => {
-  //   try {
-  //     const data = await getLast30DaysAttendance();
-  //     if (Array.isArray(data)) {
-  //       const map = {};
-  //       data.forEach((item) => {
-  //         map[`${item.user_id}_${item.date}`] = item.status;
-  //       });
-  //       setAttendanceMap(map);
-  //     }
-  //   } catch (err) {
-  //     console.error("Error fetching 30-day attendance records:", err);
-  //   }
-  // };
+  
 
   const fetchAttendanceRecords = async () => {
   try {
@@ -322,7 +308,8 @@ const handleFilterSubmit = (e) => {
                             {getInitials(user.user_id)}
                           </div>
                           <a href={`/hrms/attendance/userAttendance/${user.user_id}`} className="user-name-link">
-                          <span className="user-name-text">{user.user_id}</span>
+                          <span className="user-name-text">
+                           {user.employee_name} </span>
                           </a>
                         </div>
                       </td>

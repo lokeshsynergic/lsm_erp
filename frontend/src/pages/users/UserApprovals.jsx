@@ -105,7 +105,7 @@ function UserApprovals() {
           <table className="table-container">
             <thead>
               <tr>
-                <th>User ID</th>
+                <th>Name(User ID)</th>
                 <th>User Type</th>
                 <th>Mode</th>
                 <th>Registration Date</th>
@@ -116,7 +116,7 @@ function UserApprovals() {
                 {pendingUsers.map((user, index) => (
                   <React.Fragment key={user.id || index}>
                     <tr>
-                      <td>{user.user_id}</td>
+                      <td>{user.employee_name} ({user.user_id})</td>
                       <td>{user.usertype || "N/A"}</td>
                       <td>
                         <span

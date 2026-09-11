@@ -18,8 +18,8 @@ function CallLog() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
   const [filterEquipment, setFilterEquipment] = useState("all");
-  const [sortBy, setSortBy] = useState("call_no");
-  const [sortOrder, setSortOrder] = useState("asc");
+  const [sortBy, setSortBy] = useState("call_date");
+  const [sortOrder, setSortOrder] = useState("desc");
 
   // Extract unique equipment names and statuses
   const equipmentNames = ["all", ...new Set(callLogs.map((log) => log.equipment_name || log.equipmentName).filter(Boolean))];
@@ -72,6 +72,10 @@ function CallLog() {
         case "status":
           compareA = a.equipment_status?.toLowerCase() || "";
           compareB = b.equipment_status?.toLowerCase() || "";
+          break;
+        case "call_date":
+          compareA = new Date(a.call_date || 0).getTime();
+          compareB = new Date(b.call_date || 0).getTime();
           break;
         default:
           return 0;
@@ -146,13 +150,6 @@ function CallLog() {
     }
   };
 
-  // const handleDelete = (id) => {
-  //   if (window.confirm("Are you sure you want to delete this call log?")) {
-  //     // Add delete functionality here
-  //     console.log("Delete call log:", id);
-  //   }
-  // };
-
   return (
     <Layout>
       <div className="department-list">
@@ -214,6 +211,7 @@ function CallLog() {
               onChange={(e) => setSortBy(e.target.value)}
               className="filter-select"
             >
+              <option value="call_date">Sort by Call Date</option>
               <option value="call_no">Sort by Call No</option>
               <option value="customer">Sort by Customer</option>
               <option value="status">Sort by Status</option>
@@ -233,8 +231,8 @@ function CallLog() {
                 setSearchTerm("");
                 setFilterStatus("all");
                 setFilterEquipment("all");
-                setSortBy("call_no");
-                setSortOrder("asc");
+                setSortBy("call_date");
+                setSortOrder("desc");
               }}
             >
               Reset

@@ -112,7 +112,7 @@ function Userslist() {
           <table className="table-container">
             <thead>
               <tr>
-                <th>User ID</th>
+                <th>Name(User ID)</th>
                 <th>User Type</th>
                 <th>Mode</th>
                 <th>Status</th>
@@ -124,7 +124,7 @@ function Userslist() {
             <tbody>
               {filteredUsers.map((user, index) => (
                 <tr key={user.id || index}>
-                  <td>{user.user_id}</td>
+                  <td>{user.employee_name} ({user.user_id})</td>
                   <td>{user.usertype || "N/A"}</td>
                   <td>
                     <span

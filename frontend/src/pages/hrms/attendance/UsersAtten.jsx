@@ -109,6 +109,7 @@ function UsersAtten() {
                 <th>Out Time</th>
                 <th>Out Address</th>
                 <th>Out Picture</th>
+                <th>Working Hours</th>
               </tr>
             </thead>
             <tbody>
@@ -134,6 +135,7 @@ function UsersAtten() {
   src={user.out_picture_url ? `${process.env.REACT_APP_API_END_POINT}/${user.out_picture_url}` : avtrimage}
   alt="Out" height="50" width="50"
 /></td>
+                  <td>{user.working_hours || "N/A"}</td>
                 </tr>
               ))}
             </tbody>
