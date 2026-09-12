@@ -5,6 +5,7 @@ import CustomerList from "../pages/crm/customer/CustomerList";
 import CustomerAdd from "../pages/crm/customer/CustomerAdd";
 import VisitLog from "../pages/crm/activity/VisitLog";
 import CallLogs from "../pages/crm/activity/call_log";
+import SaveCall from "../pages/crm/activity/saveCall";
 
 function CrmRoutes() {
   return (
@@ -19,6 +20,7 @@ function CrmRoutes() {
       <Route path="/activity/visit-log" element={<VisitLog />} />
       <Route path="/activity/visit-log/add" element={<VisitLog />} />
       <Route path="/activity/visit-log/edit/:id" element={<VisitLog />} />
+      <Route path="/activity/savecall/add" element={<SaveCall />} />
       <Route path="/activity/call-logs" element={<CallLogs />} />
     </Routes>
   );

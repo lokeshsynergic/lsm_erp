@@ -205,7 +205,7 @@ function CallLogs() {
             <h1>Call Logs</h1>
           </div>
 
-          <NavLink to="/crm/activity/call-logs/add" className="add-btn">
+          <NavLink to="/crm/activity/savecall/add" className="add-btn">
             + Add Call Logs
           </NavLink>
         </div>

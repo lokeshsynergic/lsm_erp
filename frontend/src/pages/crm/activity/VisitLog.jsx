@@ -191,20 +191,14 @@ function VisitLog() {
   return (
     <Layout>
       <div className="department-list">
-      
-
         {loading && <p>Loading...</p>}
         {error && <p style={{ color: "red", padding: "12px" }}>Error: {error}</p>}
-
-    
         <div className="department-list-table-wrap">
-
               <div className="department-list-heading">
           <div>
             <span>CRM</span>
             <h1>Visit Log</h1>
           </div>
-
           <NavLink to="/crm/activity/visit-log/add" className="add-btn">
             + Add Visit
           </NavLink>
@@ -240,9 +234,6 @@ function VisitLog() {
               />
             </div>
             </div>
-
-            
-
             <div className="filter-controls">
               <input
                 type="text"
@@ -251,7 +242,6 @@ function VisitLog() {
                 onChange={(e) => setEmpCode(e.target.value)}
                 className="filter-select"
               />
-
               <input
                 type="text"
                 placeholder="Organization"
@@ -385,8 +375,41 @@ function VisitLog() {
             </div>
 
             <div className="modal-body">
-              {/* Readonly Fields */}
               <div className="modal-section">
+                <div className="form-row">
+                  <div style={{ flex: "1" }}>
+                    <label>Visiting Card :</label>
+                    {selectedVisit.visitingCardUrl ? (
+                      <img
+                        src={`${process.env.REACT_APP_API_END_POINT}/${selectedVisit.visitingCardUrl}`}
+                        alt="Visiting Card"
+                        className="visit-doc-preview"
+                      />
+                    ) : (
+                      <div className="visit-doc-placeholder">N/A</div>
+                    )}
+                  </div>
+
+                  <div style={{ flex: "1" }}>
+                    <label>Selfie :</label>
+                    {selectedVisit.selfieUrl ? (
+                      <img
+                        src={`${process.env.REACT_APP_API_END_POINT}/${selectedVisit.selfieUrl}`}
+                        alt="Selfie"
+                        className="visit-doc-preview"
+                      />
+                    ) : (
+                      <div className="visit-doc-placeholder">N/A</div>
+                    )}
+                  </div>
+                  <div style={{ flex: "1" }}> <label>Products  :</label>
+                  <textarea
+                    className="form-input readonly"
+                    value={selectedVisit.product || "N/A"}
+                    readOnly
+                    rows="9"
+                  />   </div>
+                </div>
                 <div className="form-group">
                   <label>Discussion Notes :</label>
                   <textarea
@@ -396,7 +419,6 @@ function VisitLog() {
                     rows="4"
                   />
                 </div>
-
                 <div className="form-row">
                   <div className="" style={{ flex: "0 0 50%" }}>
                     <label>Expected Value :</label>
@@ -435,6 +457,8 @@ function VisitLog() {
                     rows="4"
                   />
                 </div>
+
+                
               </div>
             </div>
 

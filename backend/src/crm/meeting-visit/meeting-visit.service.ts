@@ -79,7 +79,7 @@ export class MeetingVisitService {
    * Accepts: from_date, to_date, emp_code, product, organization, outcome
    * Returns filtered and sorted visit logs
    */
-  async getVisitLogDashboard(filters: VisitLogFilterDto): Promise<any[]> {
+  async getVisitLogDashboard_bkp(filters: VisitLogFilterDto): Promise<any[]> {
     let query = this.fieldVisitRepository
       .createQueryBuilder('fv')
       .leftJoinAndSelect('fv.lead', 'lead')
@@ -94,6 +94,7 @@ export class MeetingVisitService {
         'fv.remarks',
         'fv.discussionNotes',
         'fv.expectedValue',
+
       ]);
 
     // Filter by date range (from_date and to_date)
@@ -147,6 +148,88 @@ export class MeetingVisitService {
       expectedValue: visit.expectedValue || 'N/A', // To be implemented based on business logic
     }));
   }
+
+  async getVisitLogDashboard(filters: VisitLogFilterDto): Promise<any[]> {
+  let sql = `
+    SELECT 
+      fv.visit_id AS "visitId",
+      fv.check_in_time AS "dateTimeOfVisit",
+      fv.sales_rep_id AS "nameOfEmployee",
+      COALESCE(lead.company_name, 'N/A') AS "organizationName",
+      COALESCE(STRING_AGG(prod.product_name, ', '), 'N/A') AS "product",
+      COALESCE(fv.visit_outcome, 'N/A') AS "visitOutcome",
+      COALESCE(fv.visit_review_status, 'Pending Review') AS "visitReviewStatus",
+      COALESCE(fv.remarks, '') AS "remarks",
+      COALESCE(fv.discussion_notes, 'N/A') AS "discussionNotes",
+      fv.expected_value AS "expectedValue",
+      fv.visitingCardUrl AS "visitingCardUrl",
+      fv.selfieUrl AS "selfieUrl"
+    FROM td_crm_field_visits fv
+    LEFT JOIN td_crm_leads lead ON fv.lead_id = lead.lead_id
+    LEFT JOIN td_crm_lead_products lp ON lead.lead_id = lp.lead_id
+    LEFT JOIN md_invt_products prod ON lp.product_id = prod.product_id
+    WHERE 1=1
+  `;
+
+  const params: any[] = [];
+
+  // Filter by date range
+  if (filters.from_date) {
+    params.push(new Date(filters.from_date));
+    sql += ` AND fv.check_in_time >= $${params.length}`;
+  }
+
+  if (filters.to_date) {
+    const toDate = new Date(filters.to_date);
+    toDate.setHours(23, 59, 59, 999);
+    params.push(toDate);
+    sql += ` AND fv.check_in_time <= $${params.length}`;
+  }
+
+  // Filter by employee code
+  if (filters.emp_code) {
+    params.push(filters.emp_code);
+    sql += ` AND fv.sales_rep_id = $${params.length}`;
+  }
+
+  // Filter by outcome
+  if (filters.outcome) {
+    params.push(filters.outcome);
+    sql += ` AND fv.visit_outcome = $${params.length}`;
+  }
+
+  // Filter by organization
+  if (filters.organization) {
+    params.push(`%${filters.organization}%`);
+    sql += ` AND lead.company_name ILIKE $${params.length}`;
+  }
+
+  // Group By (Required when using STRING_AGG)
+  sql += `
+    GROUP BY 
+      fv.visit_id, 
+      fv.check_in_time, 
+      fv.sales_rep_id, 
+      lead.company_name, 
+      fv.visit_outcome, 
+      fv.visit_review_status, 
+      fv.remarks, 
+      fv.discussion_notes, 
+      fv.expected_value
+  `;
+
+  // Order By
+  sql += ` ORDER BY fv.check_in_time DESC`;
+
+  // Execute raw SQL
+  const rawResults = await this.fieldVisitRepository.query(sql, params);
+
+  // Add slNo index count
+  return rawResults.map((row, index) => ({
+    slNo: index + 1,
+    ...row,
+  }));
+}
 
   /**
    * Update visit review status with remarks and follow-up actions
