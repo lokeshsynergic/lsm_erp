@@ -237,19 +237,27 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 },
               ),
               _buildQuickActionCard(
+                icon: Icons.person_outline,
+                label: AppStrings.logsandshift,
+                color: AppColors.primary,
+                onTap: () {
+                  Navigator.of(context).pushNamed('/log-shift');
+                },
+              ),
+              // _buildQuickActionCard(
+              //   icon: Icons.person_outline,
+              //   label: AppStrings.profile,
+              //   color: AppColors.primary,
+              //   onTap: () {
+              //     Navigator.of(context).pushNamed('/profile');
+              //   },
+              // ),
+              _buildQuickActionCard(
                 icon: Icons.analytics_outlined,
                 label: AppStrings.reports,
                 color: AppColors.success,
                 onTap: () {
                   Navigator.of(context).pushNamed('/reports');
-                },
-              ),
-              _buildQuickActionCard(
-                icon: Icons.person_outline,
-                label: AppStrings.profile,
-                color: AppColors.primary,
-                onTap: () {
-                  Navigator.of(context).pushNamed('/profile');
                 },
               ),
             ],

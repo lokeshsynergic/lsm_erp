@@ -9,6 +9,7 @@ import {
   HttpCode,
   HttpStatus,
   UploadedFile,
+  Query,
 } from '@nestjs/common';
 import { UseInterceptors, UploadedFiles } from '@nestjs/common';
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
@@ -38,5 +39,14 @@ export class EmployeeController {
   async getTodayAttendance(@Param('empcode') empcode: string) {
     console.log('📥 Get Today Attendance API called');
     return await this.employeeService.getTodayAttendance(empcode);
+  }
+
+  @Get('attendancebyrange')
+  async getEmployeeAttendance(
+    @Query('empCode') empCode: string,
+    @Query('fromDate') fromDate?: string,
+    @Query('toDate') toDate?: string,
+  ): Promise<any> {
+    return await this.employeeService.getEmployeeAttendance(empCode, fromDate, toDate);
   }
 }

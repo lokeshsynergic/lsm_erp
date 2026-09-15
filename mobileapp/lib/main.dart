@@ -5,6 +5,7 @@ import 'screens/auth/login_screen.dart';
 import 'screens/auth/register_screen.dart';
 import 'screens/home/dashboard_screen.dart';
 import 'screens/attendance/check_in_out_screen.dart';
+import 'screens/attendance/log_shift.dart';
 import 'screens/crm/client_visit_screen.dart';
 import 'screens/notifications/notifications_screen.dart';
 import 'screens/profile/profile_screen.dart';
@@ -66,6 +67,7 @@ class MyApp extends StatelessWidget {
           '/client-visit': (context) => const ClientVisitScreen(),
           '/notifications': (context) => const NotificationsScreen(),
           '/profile': (context) => const ProfileScreen(),
+          '/log-shift': (context) => const LogShiftScreen(),
           '/reports': (context) => const ReportsScreen(),
         },
       ),

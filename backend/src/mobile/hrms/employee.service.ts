@@ -328,8 +328,12 @@ export class EmployeeService {
 
 
   async checkInOut(body: any,image?: Express.Multer.File) {
+    console.log('Attendance Check-In/Out');
+    console.log(body);
   const {id,empcode,type,datetime,lat,long,address,
 is_out_of_office} = body;
+
+    
   // --------------------------------------------------
   // VALIDATION
   // --------------------------------------------------
@@ -562,5 +566,61 @@ private async uploadAttendanceImage(
       indatetime: Between(today, tomorrow),
     },
   });
+  }
+
+  async getEmployeeAttendance(empCode: string, fromDate?: string, toDate?: string) {
+      console.log('📅 getEmployeeAttendance called with:', { empCode, fromDate, toDate });
+      const hasDateRange = fromDate && toDate;
+      const query = `
+        SELECT
+          s2.first_name || ' ' || s2.middle_name || ' ' || s2.last_name AS emp_name,
+          a.empcode AS user_id,
+          a.indatetime::date::text AS date,
+          a.indatetime,
+          a.in_lat,
+          a.in_long,
+          a.in_address,
+          a.in_picture_url,
+          a.out_dttime,
+          a.out_lat,
+          a.out_long,
+          a.out_address,
+          a.out_picture_url,
+          s.start_time || ' - ' || s.end_time AS shift_duration,
+          CASE 
+            WHEN a.is_out_of_office = 1 THEN 'out_of_office'
+            WHEN a.indatetime IS NOT NULL AND a.indatetime::time > s.start_time THEN 'late'
+            WHEN a.indatetime IS NOT NULL THEN 'present'
+            ELSE 'absent'
+          END AS status,
+          CASE 
+        WHEN a.out_dttime IS NULL THEN NULL
+        WHEN a.out_dttime < a.indatetime THEN '00:00:00' 
+        ELSE 
+          LPAD(FLOOR(EXTRACT(EPOCH FROM (a.out_dttime - a.indatetime)) / 3600)::text, 2, '0') || ':' ||
+          LPAD(FLOOR((EXTRACT(EPOCH FROM (a.out_dttime - a.indatetime)) % 3600) / 60)::text, 2, '0') || ':' ||
+          LPAD(FLOOR(EXTRACT(EPOCH FROM (a.out_dttime - a.indatetime)) % 60)::text, 2, '0')
+        END AS working_hours
+        FROM td_hrms_attendance a
+        INNER JOIN td_user u 
+          ON a.empcode = u.user_id
+        LEFT JOIN md_hrms_shift s 
+          ON u.shift_id = s.shift_code
+        JOIN md_hrms_employee s2
+          ON a.empcode = s2.emp_code
+        WHERE a.empcode = $1
+          AND (
+            (${hasDateRange ? '1=1' : '1=0'} AND a.indatetime::date BETWEEN $2::date AND $3::date)
+            OR 
+            (${hasDateRange ? '1=0' : '1=1'} AND a.indatetime >= CURRENT_DATE - INTERVAL '30 days')
+          )
+          AND a.indatetime IS NOT NULL ORDER BY a.indatetime DESC;
+      `;
+
+      const parameters = hasDateRange 
+        ? [empCode, fromDate, toDate] 
+        : [empCode, null, null];
+
+      return await this.dataSource.query(query, parameters);
   }
 }

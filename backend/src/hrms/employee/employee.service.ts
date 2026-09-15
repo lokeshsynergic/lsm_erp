@@ -538,7 +538,7 @@ private async uploadAttendanceImage(
           ) AS total_late,
           COUNT(DISTINCT e.emp_code) FILTER (
               WHERE a.indatetime IS NOT NULL
-                AND a.is_out_of_office = 0
+                AND a.is_out_of_office = 1
           ) AS total_out_of_office
       FROM md_hrms_employee e
       INNER JOIN td_user u

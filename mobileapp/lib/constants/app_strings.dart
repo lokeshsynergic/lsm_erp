@@ -29,6 +29,9 @@ class AppStrings {
   static const String checkOutTime = 'Check Out Time';
   static const String workingHours = 'Working Hours';
 
+  // Logs and Shift
+  static const String logsandshift = 'Logs and Shift';
+
   // Check In/Out
   static const String checkIn = 'Check In';
   static const String checkOut = 'Check Out';

@@ -162,8 +162,8 @@ export class MeetingVisitService {
       COALESCE(fv.remarks, '') AS "remarks",
       COALESCE(fv.discussion_notes, 'N/A') AS "discussionNotes",
       fv.expected_value AS "expectedValue",
-      fv.visitingCardUrl AS "visitingCardUrl",
-      fv.selfieUrl AS "selfieUrl"
+      fv.visitingcardurl AS "visitingcardurl",
+      fv.selfieurl AS "selfieurl"
     FROM td_crm_field_visits fv
     LEFT JOIN td_crm_leads lead ON fv.lead_id = lead.lead_id
     LEFT JOIN td_crm_lead_products lp ON lead.lead_id = lp.lead_id

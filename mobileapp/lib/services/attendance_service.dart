@@ -131,28 +131,35 @@ class AttendanceService {
     }
   }
 
-  Future<List<AttendanceRecord>> getAttendanceHistory({
-    int page = 1,
-    int limit = AppConstants.pageSize,
-  }) async {
+  Future<List<dynamic>> getAttendancebyrange(
+    String empcode,
+    String fromDate,
+    String toDate,
+  ) async {
+    final path =
+        '${AppConstants.attendanceByRangeEndpoint}?empCode=$empcode&fromDate=$fromDate&toDate=$toDate';
     try {
-      final response = await _apiClient.get(
-        '${AppConstants.checkInOutEndpoint}/history',
-        queryParameters: {'page': page, 'limit': limit},
-      );
+      print('Sending GET request to path: $path');
+      final response = await _apiClient.get(path);
+      print('Response Status Code: ${response.statusCode}');
+      print('Response Data: ${response.data}');
 
-      if (response.statusCode == 200) {
-        final List<dynamic> data = response.data['data'] ?? [];
-        return data.map((item) => AttendanceRecord.fromJson(item)).toList();
-      } else {
-        throw Exception(
-          'Failed to fetch attendance history: ${response.statusCode}',
-        );
+      if (response.data is List) {
+        return response.data as List<dynamic>;
+      } else if (response.data is Map && response.data['data'] != null) {
+        return response.data['data'] as List<dynamic>;
       }
+      return [];
     } on DioException catch (e) {
-      throw Exception(
-        e.response?.data['message'] ?? 'Failed to fetch attendance history',
-      );
+      print('--- API ERROR LOG ---');
+      print('Requested URL: ${e.requestOptions.uri}');
+      print('Status Code: ${e.response?.statusCode}');
+      print('Response Body: ${e.response?.data}');
+      print('---------------------');
+      rethrow;
+    } catch (e) {
+      print('Unexpected Error: $e');
+      rethrow;
     }
   }
 }

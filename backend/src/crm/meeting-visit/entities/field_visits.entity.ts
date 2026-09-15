@@ -90,10 +90,10 @@ export class FieldVisit {
   @CreateDateColumn({ type: 'timestamp with time zone', name: 'created_at' })
   createdAt?: Date;
 
-   @Column({ type: 'varchar', length: 255, name: 'visitingCardUrl', nullable: true })
+   @Column({ type: 'varchar', length: 255, name: 'visitingcardurl', nullable: true })
   visitingCardUrl?: string;
 
-  @Column({ type: 'varchar', length: 255, name: 'selfieUrl', nullable: true })
+  @Column({ type: 'varchar', length: 255, name: 'selfieurl', nullable: true })
   selfieUrl?: string;
 
   // Relation: Many Visits belong to one Lead

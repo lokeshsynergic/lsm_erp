@@ -1,4 +1,4 @@
-import { Injectable, InternalServerErrorException, UnauthorizedException } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, UnauthorizedException, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
@@ -8,6 +8,8 @@ import { Employee } from '../hrms/employee/entities/employee.entity';
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
+
   constructor(
     @InjectRepository(User)
     private userRepository: Repository<User>,
@@ -20,9 +22,20 @@ export class AuthService {
     const { user_id, password } = loginDto;
 
     try {
-      const user = await this.userRepository.findOne({
-        where: { user_id },
-      });
+      // Validate input
+      if (!user_id || !password) {
+        throw new UnauthorizedException('Invalid credentials');
+      }
+
+      let user: User | null;
+      try {
+        user = await this.userRepository.findOne({
+          where: { user_id },
+        });
+      } catch (dbError) {
+        this.logger.error(`Database error while finding user: ${dbError}`, dbError instanceof Error ? dbError.stack : '');
+        throw new InternalServerErrorException('An error occurred during authentication');
+      }
 
       if (!user) {
         throw new UnauthorizedException('Invalid credentials');
@@ -36,7 +49,14 @@ export class AuthService {
         throw new UnauthorizedException('User account is inactive');
       }
 
-      const isPasswordValid = await bcrypt.compare(password, user.password);
+      let isPasswordValid: boolean;
+      try {
+        isPasswordValid = await bcrypt.compare(password, user.password);
+      } catch (bcryptError) {
+        this.logger.error(`Bcrypt error during password comparison: ${bcryptError}`, bcryptError instanceof Error ? bcryptError.stack : '');
+        throw new InternalServerErrorException('An error occurred during authentication');
+      }
+
       if (!isPasswordValid) {
         throw new UnauthorizedException('Invalid credentials');
       }
@@ -49,11 +69,14 @@ export class AuthService {
       };
     } catch (error) {
       // Re-throw NestJS HTTP exceptions directly
-      if (error instanceof UnauthorizedException) {
+      if (error instanceof UnauthorizedException || error instanceof InternalServerErrorException) {
         throw error;
       }
       
-      // Prevent unhandled database/bcrypt crashes from leaking unexpected structures
+      // Log unexpected errors for debugging
+      this.logger.error(`Unexpected login error: ${error}`, error instanceof Error ? error.stack : '');
+      
+      // For any other error, throw a generic server error
       throw new InternalServerErrorException('An error occurred during authentication');
     }
   }

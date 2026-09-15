@@ -379,9 +379,9 @@ function VisitLog() {
                 <div className="form-row">
                   <div style={{ flex: "1" }}>
                     <label>Visiting Card :</label>
-                    {selectedVisit.visitingCardUrl ? (
+                    {selectedVisit.visitingcardurl ? (
                       <img
-                        src={`${process.env.REACT_APP_API_END_POINT}/${selectedVisit.visitingCardUrl}`}
+                        src={`${process.env.REACT_APP_API_END_POINT}/${selectedVisit.visitingcardurl}`}
                         alt="Visiting Card"
                         className="visit-doc-preview"
                       />
@@ -392,9 +392,9 @@ function VisitLog() {
 
                   <div style={{ flex: "1" }}>
                     <label>Selfie :</label>
-                    {selectedVisit.selfieUrl ? (
+                    {selectedVisit.selfieurl ? (
                       <img
-                        src={`${process.env.REACT_APP_API_END_POINT}/${selectedVisit.selfieUrl}`}
+                        src={`${process.env.REACT_APP_API_END_POINT}/${selectedVisit.selfieurl}`}
                         alt="Selfie"
                         className="visit-doc-preview"
                       />

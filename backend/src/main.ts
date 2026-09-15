@@ -4,10 +4,14 @@ import { Logger } from '@nestjs/common';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import * as bcrypt from 'bcrypt';
 import { join } from 'path'; // Standard path import for all OS platforms
+import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 
 async function bootstrap() {
   // Pass NestExpressApplication generic so TypeScript recognizes useStaticAssets
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
+
+  // Apply global exception filter
+  app.useGlobalFilters(new HttpExceptionFilter());
 
   app.enableCors({
     origin: true,
