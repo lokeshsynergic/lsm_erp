@@ -14,9 +14,6 @@ package-lock.json
 # ==========================================
 # Environment Variables & Secrets (CRITICAL)
 # ==========================================
-.env
-.env.production
-.env.local
 .env.development.local
 .env.test.local
 .env.production.local
@@ -54,7 +51,6 @@ lerna-debug.log*
 # ==========================================
 # IDEs & Code Editors
 # ==========================================
-.vscode/*
 !.vscode/settings.json
 !.vscode/tasks.json
 !.vscode/launch.json
@@ -97,7 +93,6 @@ server.executable
 .idea/
 
 # Visual Studio Code
-.vscode/
 
 # Flutter / Dart
 .dart_tool/
@@ -150,4 +145,4 @@ Podfile.lock
 coverage/
 
 # Environment variables / secrets
-.env*
+config.bat

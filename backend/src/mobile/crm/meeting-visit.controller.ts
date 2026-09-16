@@ -54,10 +54,11 @@ async create(
     return await this.meetingVisitService.findAll();
   }
 
-  /**
-   * Search by call number (MUST BE PLACED BEFORE :id TO PREVENT ROUTE MATCHING ISSUES)
-   * GET /crm/meeting-visit/search/:callNo
-   */
+  @Get('customerlist')
+  async getCustomerList(): Promise<any[]> {
+    return await this.meetingVisitService.getCustomerList();
+  }
+
   @Get('search/:callNo')
   async findByCallNo(@Param('callNo') callNo: string): Promise<FieldVisit[]> {
     return await this.meetingVisitService.findByCallNo(callNo);
@@ -93,6 +94,5 @@ async create(
   async remove(@Param('id', ParseIntPipe) id: number): Promise<void> {
     await this.meetingVisitService.remove(id);
   }
-
   
 }

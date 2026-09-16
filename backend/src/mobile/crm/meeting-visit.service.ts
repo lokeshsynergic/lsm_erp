@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { DataSource } from 'typeorm';
 
 import { FieldVisit } from '../../crm/meeting-visit/entities/field_visits.entity';
 import { CrmProductLead } from '../../crm/meeting-visit/entities/leads_product.entity'; 
@@ -19,6 +20,7 @@ export class MeetingVisitService {
     private readonly crmLeadRepository: Repository<CrmLead>,
     @InjectRepository(CrmProductLead)
     private readonly crmProductLeadRepository: Repository<CrmProductLead>,  
+    private readonly dataSource: DataSource,
   ) {}
 
    private async uploadVisitImage(
@@ -223,5 +225,10 @@ export class MeetingVisitService {
   async remove(visitId: number): Promise<void> {
     const visit = await this.findOne(visitId);
     await this.fieldVisitRepository.remove(visit);
+  }
+
+  async getCustomerList() {
+    const sql = 'SELECT customer_name as comp_name,primary_contact_name contactPerson,primary_mobile phone FROM md_invt_customers';
+    return await this.dataSource.query(sql);
   }
 }

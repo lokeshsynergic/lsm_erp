@@ -9,7 +9,7 @@ const baseTabs = [
   "Call Details"
 ];
 
-const PRODUCT_OPTIONS = ["Product A", "Product B", "Product C" ,"Cathlab","Bodyheater"];
+const PRODUCT_OPTIONS = ["Product A","Product B","Product C","Cathlab","Bodyheater"];
 
 function SaveCall() {
   const navigate = useNavigate();

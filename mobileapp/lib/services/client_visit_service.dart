@@ -1,5 +1,5 @@
 import 'dart:io';
-
+import 'dart:convert';
 import 'package:dio/dio.dart';
 import '../constants/app_constants.dart';
 import '../models/client_visit_model.dart';
@@ -192,6 +192,47 @@ class ClientVisitService {
       print('🔴 Response: ${e.response?.data}');
       throw Exception(
         e.response?.data?['message'] ?? 'Failed to fetch products',
+      );
+    } catch (e) {
+      print('🔴 Unexpected error: $e');
+      rethrow;
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> getCustomerList() async {
+    try {
+      final response = await _apiClient.get(AppConstants.customerListEndpoint);
+      print('Response data: ${response.data}');
+      print('---------------------------');
+
+      if (response.statusCode == 200) {
+        List<dynamic> data = [];
+
+        var responseData = response.data;
+        if (responseData is String) {
+          responseData = json.decode(responseData);
+        }
+
+        if (responseData is List) {
+          data = responseData;
+          print('✅ Response is direct array with ${data.length} items');
+        } else if (responseData is Map) {
+          data = responseData['data'] ?? responseData['customers'] ?? [];
+          print('✅ Response is wrapped object with ${data.length} items');
+        }
+
+        // Safe mapping without type casting errors
+        final customers = data.map((item) {
+          return Map<String, dynamic>.from(item as Map);
+        }).toList();
+
+        return customers;
+      } else {
+        throw Exception('Failed to fetch customers: ${response.statusCode}');
+      }
+    } on DioException catch (e) {
+      throw Exception(
+        e.response?.data?['message'] ?? 'Failed to fetch customers',
       );
     } catch (e) {
       print('🔴 Unexpected error: $e');

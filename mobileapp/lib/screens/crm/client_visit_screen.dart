@@ -60,6 +60,8 @@ class _ClientVisitScreenState extends State<ClientVisitScreen> {
   final ImagePicker _picker = ImagePicker();
   String empcode = '';
   int _selectedCustomerId = 0;
+  List<Map<String, dynamic>> _existingLeads = [];
+  String _errorMessage = '';
 
   // on loading, get the current location
   @override
@@ -68,6 +70,7 @@ class _ClientVisitScreenState extends State<ClientVisitScreen> {
     _currentStep = 1;
     _getCurrentLocation();
     _initializeUser();
+    _loadCustomers();
   }
 
   Future<void> _initializeUser() async {
@@ -135,26 +138,35 @@ class _ClientVisitScreenState extends State<ClientVisitScreen> {
     super.dispose();
   }
 
-  final List<Map<String, dynamic>> _existingLeads = [
-    {
-      'id': 1,
-      'name': 'Apex Software Solutions',
-      'contactPerson': 'Rahul Sharma',
-      'phone': '+919876543210',
-      'products': 'ERP Enterprise, Mobile CRM',
-      'lastVisitDate': '2026-08-20',
-      'totalVisits': 4,
-    },
-    {
-      'id': 2,
-      'name': 'Global Logistics Inc',
-      'contactPerson': 'Anita Roy',
-      'phone': '+919830012345',
-      'products': 'Fleet Management Module',
-      'lastVisitDate': '2026-07-15',
-      'totalVisits': 2,
-    },
-  ];
+  Future<void> _loadCustomers() async {
+    try {
+      final leads = await _clientVisitService.getCustomerList();
+      setState(() {
+        _existingLeads = leads;
+      });
+    } catch (e) {
+      setState(() {
+        _errorMessage = e.toString();
+      });
+    }
+  }
+
+  //  [
+  //   {
+  //     'id': 1,
+  //     'comp_name': 'Apex Software Solutions',
+  //     'contactPerson': 'Rahul Sharma',
+  //     'phone': '+919876543210',
+  //     'lastVisitDate': '2026-08-20',
+  //   },
+  //   {
+  //     'id': 2,
+  //     'comp_name': 'Global Logistics Inc',
+  //     'contactPerson': 'Anita Roy',
+  //     'phone': '+919830012345',
+  //     'lastVisitDate': '2026-07-15',
+  //   },
+  // ];
 
   void _handleAddVisit() {
     showModalBottomSheet(
@@ -457,43 +469,14 @@ class _ClientVisitScreenState extends State<ClientVisitScreen> {
           ),
           const SizedBox(height: 16),
           if (_leadType == 'existing') ...[
-            // Autocomplete<Map<String, dynamic>>(
-            //   displayStringForOption: (opt) =>
-            //       '${opt['name']} (${opt['phone']})',
-            //   optionsBuilder: (textVal) {
-            //     if (textVal.text.isEmpty) return const Iterable.empty();
-            //     return _existingLeads.where(
-            //       (lead) =>
-            //           lead['name'].toString().toLowerCase().contains(
-            //             textVal.text.toLowerCase(),
-            //           ) ||
-            //           lead['phone'].toString().contains(textVal.text),
-            //     );
-            //   },
-            //   onSelected: (selection) => setModalState(() {
-            //     _selectedLead = selection;
-            //     _clientNameController.text = selection['name'];
-            //     _contactPersonController.text = selection['contactPerson'];
-            //     _phoneController.text = selection['phone'];
-            //     _emailController.text = 'N/A';
-            //   }),
-            //   fieldViewBuilder: (ctx, ctrl, node, onSubmit) => TextField(
-            //     controller: ctrl,
-            //     focusNode: node,
-            //     decoration: const InputDecoration(
-            //       labelText: 'Search Lead / Customer',
-            //       prefixIcon: Icon(Icons.search),
-            //     ),
-            //   ),
-            // ),
             Autocomplete<Map<String, dynamic>>(
               displayStringForOption: (opt) =>
-                  '${opt['name']} (${opt['phone']})',
+                  '${opt['comp_name']} (${opt['phone']})',
               optionsBuilder: (textVal) {
                 if (textVal.text.isEmpty) return const Iterable.empty();
                 return _existingLeads.where(
                   (lead) =>
-                      lead['name'].toString().toLowerCase().contains(
+                      lead['comp_name'].toString().toLowerCase().contains(
                         textVal.text.toLowerCase(),
                       ) ||
                       lead['phone'].toString().contains(textVal.text),
@@ -504,7 +487,7 @@ class _ClientVisitScreenState extends State<ClientVisitScreen> {
 
                 // Auto-fill controllers with selected lead values
                 _selectedCustomerId = selection['id'] ?? 0;
-                _clientNameController.text = selection['name'] ?? '';
+                _clientNameController.text = selection['comp_name'] ?? '';
                 _contactPersonController.text =
                     selection['contactPerson'] ?? '';
                 _phoneController.text = selection['phone'] ?? '';
@@ -540,11 +523,11 @@ class _ClientVisitScreenState extends State<ClientVisitScreen> {
                       'Phone',
                       _selectedLead!['phone'],
                     ),
-                    _buildReadOnlyRow(
-                      Icons.history,
-                      'Last Visit',
-                      _selectedLead!['lastVisitDate'],
-                    ),
+                    // _buildReadOnlyRow(
+                    //   Icons.history,
+                    //   'Last Visit',
+                    //   _selectedLead!['lastVisitDate'],
+                    // ),
                   ],
                 ),
               ),
